@@ -1,29 +1,46 @@
-let divInput = document.getElementsByClassName('terminal-input')[0];
-divInput.addEventListener('keypress', terminalPressEnter);
 
-function terminalInFocus(e) {
-    let divTerminal = document.getElementsByClassName('terminal-input')[0];
-    divTerminal.focus();
-}
+// Make this object oriented.
+class Terminal { 
+    
+    // private - references to DOM elements
+    #terminalElem = document.getElementById("terminal");
+    #terminalFeedElem = document.getElementById("feed");
+    #inputContainerElem = document.getElementById("commandLineContainer");
+    #commandLineElem = document.getElementById("commandLineInput");
 
-function terminalPressEnter(e) {
-    console.log(e.key);
-    if ('Enter' === e.key) {
+    constructor() {
+        this.prefix = 'xCito\\home> ';
+        this.setUpEventListeners();
+    }
 
-        let inputContainer = document.getElementsByClassName('terminal-input-container')[0];
-        let divInput = document.getElementsByClassName('terminal-input')[0];
-        let divBuffer = document.getElementsByClassName('terminal-buffer')[0];
+    setUpEventListeners() {
+        this.#commandLineElem.addEventListener('keypress', (e) => this._handleEnterKey(e));
+        this.#terminalElem.addEventListener('click', () => this._focusOnInputElem());
+        console.log('yer');
+    }
+
+    _focusOnInputElem() {
+        this.#commandLineElem.focus();
+    }
+
+    _handleEnterKey(e) {
+        if ('Enter' === e.key) {    
+            let cmd = this.#commandLineElem.value;
+            
+            this._addToFeed(cmd);
+        }
+    }
+
+    _addToFeed(text) {
         let span = document.createElement('span');
-        let cmd = 'xCito\\home> ' + divInput.value;
-        span.innerText = cmd;
+        span.classList.add('terminal-feed-entry');
+        span.innerText = this.prefix + text;
+        this.#commandLineElem.value = '';
 
-        span.classList.add('terminal-buffer-entry');
-        divInput.value = '';
-        
-        divBuffer.appendChild(span);
-        divBuffer.appendChild(inputContainer);
-        divInput.focus();
+        this.#terminalFeedElem.appendChild(span);
+        this.#terminalFeedElem.appendChild(this.#inputContainerElem);
+        this.#commandLineElem.focus();
     }
 }
 
-class Terminal {}
+const terminal = new Terminal();
