@@ -29,10 +29,10 @@ class GitCommandProccessor {
                     response = `${cmd}\n\tRebase things`;
                     break;
                 case 'checkout':
-                    response = `${cmd}\n\tCheckout things`;
+                    response = `${cmd}\n${this.checkoutCommand(tokens[2])}`;
                     break;
                     default:
-                        response = `${cmd}\n\tError: Invalid Input\n\tI dont know what '${tokens[1]}'\n\n`;
+                        response = `${cmd}\n\tUnknown git command '${tokens[1]}'\n\n`;
                     break;
             }
         } else {
@@ -61,6 +61,23 @@ class GitCommandProccessor {
         } else {
             this.branches.push(arg);
             resp = `Created branch '${arg}'\n`;
+        }
+
+        return resp;
+    }
+
+    checkoutCommand(arg) {
+        let resp;
+        if (arg) {
+            let branchExists = this.branches.includes(arg); 
+            if (branchExists) {
+                this.curBranch = arg;
+                resp = `\tSwitched the '${arg}' branch.\n`;
+            } else {
+                resp = `Branch name '${arg}' doesnt exist\n`;
+            }
+        } else {
+            resp = `Missing branch name: git checkout <branchName>\n`;
         }
 
         return resp;

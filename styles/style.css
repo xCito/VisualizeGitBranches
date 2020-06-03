@@ -1,7 +1,12 @@
-.command-list {
+.command-list-container {
     border: 1px solid black;
     width: 300px;
-
+    margin-left: 50px;
+    padding: 5px;
     font-family: 'Ubuntu Mono', monospace;
     font-size: 1.3em;
+}
+
+.command-list {
+    padding-left: 30px;
 }
