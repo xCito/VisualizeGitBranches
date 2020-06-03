@@ -42,6 +42,7 @@
 
 .terminal-feed-entry {
     display: block;
+    white-space: pre;
 }
 
 .terminal-input-container {

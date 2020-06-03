@@ -1,0 +1,7 @@
+.command-list {
+    border: 1px solid black;
+    width: 300px;
+
+    font-family: 'Ubuntu Mono', monospace;
+    font-size: 1.3em;
+}
