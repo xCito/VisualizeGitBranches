@@ -1,14 +1,52 @@
+class Commit {
+    constructor(msg) {
+        this.message = msg;
+        this.prev = null;
+        this.next = null;
+        this.branchCommits = [];
+    }
+}
+
+class Branch {
+    constructor(name, commit) {
+        this.name = name;
+        this.curCommit = commit;
+        this.numCommits = 1;
+    }
+
+    addNewCommit( msg ) {
+        let c1 = new Commit(msg);
+
+        if (this.numCommits === 1 && this.name !== 'master') {
+            console.log('Branch off commit');
+            this.curCommit.branchCommits.push(c1);
+            c1.prev = this.curCommit;
+            this.curCommit = c1;
+        } else {
+            console.log('Normal commit line');
+            this.curCommit.next = c1;
+            c1.prev = this.curCommit;
+            this.curCommit = c1;
+        }
+        ++this.numCommits;
+        return c1;
+    }
+}
+
 class GitCommandProccessor {
     constructor() {
-        this.branches = ['master', 'develop', 'feature'];
-        this.curBranch = 'develop';
+        let root = new Commit('root');
+        let master = new Branch('master', root);
+        this.branches = [master];
+        this.curBranch = master;
+        this.rootCommit = root;
     }
 
     process(cmd) {
         cmd = cmd.replace(/\s+/," ");
         let tokens = cmd.split(/\s/).filter(s => s);
         let response = "";
-        
+
         if(this.startsWithGit(tokens[0])) {
             response = `${cmd}\n\tThis is custom CitoGit\n\tversion - 1.0.0\n\n`;
 
@@ -19,7 +57,7 @@ class GitCommandProccessor {
                     response = `${cmd}\n${this.branchCommand(tokens[2])}`;
                     break; 
                 case 'commit':
-                    response = `${cmd}\n\tCommit things`;
+                    response = `${cmd}\n${this.commitCommand(tokens[2], tokens[3])}`;
                     break; 
                 case 'merge':
                     response = `${cmd}\n\tMerge things`;
@@ -52,12 +90,12 @@ class GitCommandProccessor {
         if(!arg) {
             console.log('no args, list all branches for response');
             let branchNames = this.branches.reduce((acc,cur,i) => {
-                let curBranchSymbol = this.curBranch === cur ? ' * ':' ';
-                return `${acc}${i+1})${curBranchSymbol}${cur}\n`;
+                let curBranchSymbol = this.curBranch.name === cur.name ? ' * ':' ';
+                return `${acc}${i+1})${curBranchSymbol}${cur.name}\n`;
             }, "");
             resp = `All Branches:\n${branchNames}\n`;
         } else {
-            this.branches.push(arg);
+            this.branches.push(new Branch(arg, this.curBranch.curCommit));
             resp = `Created branch '${arg}'\n`;
         }
 
@@ -67,9 +105,10 @@ class GitCommandProccessor {
     checkoutCommand(arg) {
         let resp;
         if (arg) {
-            let branchExists = this.branches.includes(arg); 
+            let branchExists = this.branches.some( b => b.name === arg); 
             if (branchExists) {
-                this.curBranch = arg;
+                this.curBranch = this.branches.find( b => b.name === arg);
+                console.log('now the current branch is ' + this.curBranch.name);
                 resp = `\tSwitched the '${arg}' branch.\n`;
             } else {
                 resp = `Branch name '${arg}' doesnt exist\n`;
@@ -79,6 +118,41 @@ class GitCommandProccessor {
         }
 
         return resp;
+    }
+
+    commitCommand(mFlag, arg) {
+        let resp;
+        let msgPatt = new RegExp(/".+"/);
+
+        if(mFlag === '-m' && arg && msgPatt.test(arg)) {
+            let msg = arg.replace(/"/g, '');
+            this.curBranch.addNewCommit(msg);
+
+            resp = `Added new commit to ${this.curBranch.name} branch\n\twith message: "${msg}"\n`;
+        } else if (!mFlag && arg === undefined){
+            let msg = this.curBranch.name+'Commit' + this.curBranch.numCommits;
+            this.curBranch.addNewCommit(msg);
+
+            resp = `Added new commit to ${this.curBranch.name} branch\n\twith message: "${msg}"\n`;
+        } else {
+            resp = `Commit unsuccessful, please follow this pattern:\n\tgit commit -m "Your Message Here"\n\n`;
+        }
+        this.displayCommits(this.rootCommit);
+        console.log('\n\n');
+        return resp;
+    }
+
+    displayCommits(cur) {
+        if (cur === null || cur === undefined) {
+            return;
+        }
+    
+        console.log(cur.message + "\t| \tprev: " + cur.prev?.message + "\t|\tnext: " + cur.next?.message + "\t|\tbranchoffs: " + cur.branchCommits.map(c=>c.message));
+        this.displayCommits(cur.next);
+        
+        for(var i=0; i<cur.branchCommits.length; i++) {
+            this.displayCommits(cur.branchCommits[i]);
+        }
     }
 }
 
@@ -93,9 +167,9 @@ class Terminal {
     constructor() {
         this.gitProcessor = new GitCommandProccessor();
         this.prefix = 'xCito\\home> ';
-        this.setUpEventListeners();
         this.commandHistory = [""];
         this.historyIndex = 0;
+        this.setUpEventListeners();
     }
 
     setUpEventListeners() {
@@ -117,6 +191,7 @@ class Terminal {
             if(output != null) {
                 this._addToFeed(output);
             }
+            this.historyIndex = 0;
         } else if ('ArrowUp' === e.key) {
             this.navigateCommandHistory(1);
         } else if ('ArrowDown' === e.key) {
@@ -201,3 +276,35 @@ class Terminal {
 }
 
 const terminal = new Terminal();
+
+
+
+let root = new Commit('rt');
+let master = new Branch('master', root);
+master.addNewCommit('c1', false);
+master.addNewCommit('c2', false);
+master.addNewCommit('c3', false);
+master.addNewCommit('c4', false);
+
+let feature = new Branch('feature', master.curCommit);
+feature.addNewCommit('f1', true);
+
+let feature2 = new Branch('feature2', feature.curCommit);
+feature2.addNewCommit('f2', true);
+
+let cur = root;
+// console.log(cur);
+// while(cur != null) {
+//     console.log(cur.message + "\t| \tprev: " + cur.prev?.message + "\t|\tnext: " + cur.next?.message + "\t|\tbranchoffs: " + cur.branchCommits.map(c=>c.message));
+//     cur = cur.next;
+// }
+
+function displayCommits(cur, isBranchOff = false) {
+    if (cur === null) {
+        return;
+    }
+
+    console.log(cur.message + "\t| \tprev: " + cur.prev?.message + "\t|\tnext: " + cur.next?.message + "\t|\tbranchoffs: " + cur.branchCommits.map(c=>c.message));
+    displayCommits(cur.next);
+}
+// displayCommits(root);
