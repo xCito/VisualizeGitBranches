@@ -253,6 +253,8 @@ class Terminal {
                      "    git branch\t\t\t*displays all branches*\n" +
                      "    git branch <branchName>\t*creates a new branch*\n" +
                      "    git checkout <branchName>\t*switches to <branchName>*\n" +
+                     "    git commit\t\t\t*logs commit to current branch*\n" +
+                     "    git commit -m \"message\"\t*logs commit to current branch with message*\n" +
                      "    git rebase <branchName>\t*noactionyet*\n" +
                      "    git merge <branchName>\t*noactionyet*\n\n";
                      
