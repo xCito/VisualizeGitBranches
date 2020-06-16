@@ -163,6 +163,7 @@ class Terminal {
     #terminalFeedElem = document.getElementById("feed");
     #inputContainerElem = document.getElementById("commandLineContainer");
     #commandLineElem = document.getElementById("commandLineInput");
+    #terminalHeader = document.getElementById("terminal-head");
 
     constructor() {
         this.gitProcessor = new GitCommandProccessor();
@@ -175,6 +176,9 @@ class Terminal {
     setUpEventListeners() {
         this.#commandLineElem.addEventListener('keydown', (e) => this._handleKeyPress(e));
         this.#terminalElem.addEventListener('click', () => this._focusOnInputElem());
+        this.#terminalHeader.addEventListener('mousemove', e => e.buttons === 1 ? this._handleMouseDrag(e): false);
+        this.#terminalElem.style.left = '0px';
+        this.#terminalElem.style.top = '0px';
     }
 
     _handleKeyPress(e) {
@@ -197,6 +201,15 @@ class Terminal {
         } else if ('ArrowDown' === e.key) {
             this.navigateCommandHistory(-1);
         }
+    }
+
+    _handleMouseDrag(e) {
+        let posX = this.#terminalElem.style.left.slice(0, -2);
+        let posY = this.#terminalElem.style.top.slice(0, -2);
+        let moveX = parseInt(posX) + e.movementX;
+        let moveY = parseInt(posY) + e.movementY;
+        this.#terminalElem.style.left = moveX + 'px';
+        this.#terminalElem.style.top = moveY + 'px';
     }
 
     addToCommandHistory(cmd) {
