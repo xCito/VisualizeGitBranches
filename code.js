@@ -170,6 +170,10 @@ class Terminal {
         this.prefix = 'xCito\\home> ';
         this.commandHistory = [""];
         this.historyIndex = 0;
+
+        this.shiftX = 0;
+        this.shiftY = 0;
+
         this.setUpEventListeners();
     }
 
@@ -177,6 +181,10 @@ class Terminal {
         this.#commandLineElem.addEventListener('keydown', (e) => this._handleKeyPress(e));
         this.#terminalElem.addEventListener('click', () => this._focusOnInputElem());
         this.#terminalHeader.addEventListener('mousemove', e => e.buttons === 1 ? this._handleMouseDrag(e): false);
+        this.#terminalHeader.addEventListener('mousedown', e => { 
+            this.shiftX = e.pageX - this.#terminalHeader.getBoundingClientRect().left+ 10; 
+            this.shiftY = e.pageY - this.#terminalHeader.getBoundingClientRect().top + 10; 
+        });
         this.#terminalElem.style.left = '0px';
         this.#terminalElem.style.top = '0px';
     }
@@ -204,12 +212,9 @@ class Terminal {
     }
 
     _handleMouseDrag(e) {
-        let posX = this.#terminalElem.style.left.slice(0, -2);
-        let posY = this.#terminalElem.style.top.slice(0, -2);
-        let moveX = parseInt(posX) + e.movementX;
-        let moveY = parseInt(posY) + e.movementY;
-        this.#terminalElem.style.left = moveX + 'px';
-        this.#terminalElem.style.top = moveY + 'px';
+        e.preventDefault();
+        this.#terminalElem.style.left = e.clientX - this.shiftX + 'px';
+        this.#terminalElem.style.top = e.clientY - this.shiftY + 'px';
     }
 
     addToCommandHistory(cmd) {
