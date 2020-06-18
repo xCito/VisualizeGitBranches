@@ -171,6 +171,7 @@ class Terminal {
         this.commandHistory = [""];
         this.historyIndex = 0;
 
+        this.isHeld = false;
         this.shiftX = 0;
         this.shiftY = 0;
 
@@ -178,13 +179,18 @@ class Terminal {
     }
 
     setUpEventListeners() {
+        // Input listeners to handle terminal-like features 
         this.#commandLineElem.addEventListener('keydown', (e) => this._handleKeyPress(e));
         this.#terminalElem.addEventListener('click', () => this._focusOnInputElem());
-        this.#terminalHeader.addEventListener('mousemove', e => e.buttons === 1 ? this._handleMouseDrag(e): false);
+
+        // Dragging terminal listeners 
+        document.addEventListener('mousemove', e => e.buttons === 1 && this.isHeld ? this._handleMouseDrag(e): false);
         this.#terminalHeader.addEventListener('mousedown', e => { 
+            this.isHeld = true
             this.shiftX = e.pageX - this.#terminalHeader.getBoundingClientRect().left+ 10; 
             this.shiftY = e.pageY - this.#terminalHeader.getBoundingClientRect().top + 10; 
         });
+        this.#terminalHeader.addEventListener('mouseup', () => this.isHeld = false);
         this.#terminalElem.style.left = '0px';
         this.#terminalElem.style.top = '0px';
     }
