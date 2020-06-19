@@ -33,7 +33,7 @@ class Branch {
     }
 }
 
-class GitCommandProccessor {
+class GitCommandProcessor {
     constructor() {
         let root = new Commit('root');
         let master = new Branch('master', root);
@@ -146,7 +146,7 @@ class GitCommandProccessor {
      * @param branch1 - Branch
      * @param branch2 - Branch
      */
-    findCommonAncestor(branch1, branch2) {
+    static findCommonAncestor(branch1, branch2) {
         const set = new Set();
         let commit1 = branch1.curCommit;
         let commit2 = branch2.curCommit;
@@ -197,7 +197,7 @@ class Terminal {
     #terminalHeader = document.getElementById("terminal-head");
 
     constructor() {
-        this.gitProcessor = new GitCommandProccessor();
+        this.gitProcessor = new GitCommandProcessor();
         this.prefix = 'xCito\\home> ';
         this.commandHistory = [""];
         this.historyIndex = 0;
@@ -377,32 +377,6 @@ function displayCommits(cur) {
     }
 }
 
-function findCommonAncestor(branch1, branch2) {
-    const set = new Set();
-    let commit1 = branch1.curCommit;
-    let commit2 = branch2.curCommit;
-    
-    // Both branches are already pointing to same commit.
-    if(commit1 === commit2) {
-        return commit1;
-    }
-    
-    while(commit1 !== null || commit2 !== null) {
-        if(commit1 !== null) { 
-            if(!set.has(commit1)) {
-                set.add(commit1);
-                commit1 = commit1.prev;
-            } else return commit1;
-        }
-        if(commit2 !== null) { 
-            if(!set.has(commit2)) { 
-                set.add(commit2);
-                commit2 = commit2.prev;
-            } else return commit2;
-        }
-    }
-    return null;    
-}
 displayCommits(root);
 
-console.log(findCommonAncestor(feature3, feature2));
+console.log(GitCommandProcessor.findCommonAncestor(feature3, feature2));
