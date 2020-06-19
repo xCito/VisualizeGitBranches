@@ -142,6 +142,37 @@ class GitCommandProccessor {
         return resp;
     }
 
+    /**
+     * @param branch1 - Branch
+     * @param branch2 - Branch
+     */
+    findCommonAncestor(branch1, branch2) {
+        const set = new Set();
+        let commit1 = branch1.curCommit;
+        let commit2 = branch2.curCommit;
+
+        // Both branches are pointing to same commit.
+        if(commit1 === commit2) {
+            return commit1;
+        }
+    
+        while(commit1 !== null || commit2 !== null) {
+            if(commit1 !== null) { 
+                if(!set.has(commit1)) {
+                    set.add(commit1);
+                    commit1 = commit1.prev;
+                } else return commit1;
+            }
+            if(commit2 !== null) { 
+                if(!set.has(commit2)) { 
+                    set.add(commit2);
+                    commit2 = commit2.prev;
+                } else return commit2;
+            }
+        }
+        return null;    
+    }
+
     displayCommits(cur) {
         if (cur === null || cur === undefined) {
             return;
@@ -310,14 +341,22 @@ let master = new Branch('master', root);
 master.addNewCommit('c1', false);
 master.addNewCommit('c2', false);
 master.addNewCommit('c3', false);
-master.addNewCommit('c4', false);
 
 let feature = new Branch('feature', master.curCommit);
 feature.addNewCommit('f1', true);
+feature.addNewCommit('f2', false);
+feature.addNewCommit('f3', false);
 
 let feature2 = new Branch('feature2', feature.curCommit);
-feature2.addNewCommit('f2', true);
+feature2.addNewCommit('g1', true);
 
+master.addNewCommit('c4', false);
+master.addNewCommit('c5', false)
+
+let feature3 = new Branch('feature3', master.curCommit);
+feature3.addNewCommit('b1', false);
+feature3.addNewCommit('b2', false);
+feature3.addNewCommit('b3', false);
 let cur = root;
 // console.log(cur);
 // while(cur != null) {
@@ -325,12 +364,45 @@ let cur = root;
 //     cur = cur.next;
 // }
 
-function displayCommits(cur, isBranchOff = false) {
-    if (cur === null) {
+function displayCommits(cur) {
+    if (cur === null || cur === undefined) {
         return;
     }
 
     console.log(cur.message + "\t| \tprev: " + cur.prev?.message + "\t|\tnext: " + cur.next?.message + "\t|\tbranchoffs: " + cur.branchCommits.map(c=>c.message));
-    displayCommits(cur.next);
+    this.displayCommits(cur.next);
+    
+    for(var i=0; i<cur.branchCommits.length; i++) {
+        this.displayCommits(cur.branchCommits[i]);
+    }
 }
-// displayCommits(root);
+
+function findCommonAncestor(branch1, branch2) {
+    const set = new Set();
+    let commit1 = branch1.curCommit;
+    let commit2 = branch2.curCommit;
+    
+    // Both branches are already pointing to same commit.
+    if(commit1 === commit2) {
+        return commit1;
+    }
+    
+    while(commit1 !== null || commit2 !== null) {
+        if(commit1 !== null) { 
+            if(!set.has(commit1)) {
+                set.add(commit1);
+                commit1 = commit1.prev;
+            } else return commit1;
+        }
+        if(commit2 !== null) { 
+            if(!set.has(commit2)) { 
+                set.add(commit2);
+                commit2 = commit2.prev;
+            } else return commit2;
+        }
+    }
+    return null;    
+}
+displayCommits(root);
+
+console.log(findCommonAncestor(feature3, feature2));
