@@ -160,26 +160,32 @@ class GitCommandProcessor {
 
             if(this.curBranch.name !== rebaseOntoThisBranch.name) {
                 let commit = this.findCommonAncestor(this.curBranch, rebaseOntoThisBranch);
-                let isFromSameCommitTree = commit.branchCommits.length === 0 || commit.branchCommits.some(c => this.findBranchWithThisCommit(c).name !== this.curBranch.name);
+                let isFromSameCommitTree = commit.branchCommits.length === 0 
+                                           || commit.branchCommits.some(c => this.findBranchWithThisCommit(c).name !== this.curBranch.name);
 
                 if(!isFromSameCommitTree) {                
-                    // Remove from branch commits list
-                    let branchBaseCommit; 
-                    commit.branchCommits = commit.branchCommits.filter(commit => {
-                        if (this.findBranchWithThisCommit(commit).name !== this.curBranch.name)
-                            return true;
 
-                        branchBaseCommit = commit;
-                        return false;                  
-                    });
-                    console.log('base commit for %s, \n %o', this.curBranch.name, branchBaseCommit);
+                    if (commit.id !== rebaseOntoThisBranch.curCommit.id) {
+                        // Remove from branch commits list
+                        let branchBaseCommit; 
+                        commit.branchCommits = commit.branchCommits.filter(commit => {
+                            if (this.findBranchWithThisCommit(commit).name !== this.curBranch.name)
+                                return true;
 
-                    // set base of current branch on top of 'arg branch'
-                    branchBaseCommit.prev = rebaseOntoThisBranch.curCommit; // rebaseC <-- newCom
-                    rebaseOntoThisBranch.curCommit.branchCommits.push(branchBaseCommit); // rebaseC --> newCom
+                            branchBaseCommit = commit;
+                            return false;                  
+                        });
+                        console.log('base commit for %s, \n %o', this.curBranch.name, branchBaseCommit);
 
-                    resp = `Rebased ${this.curBranch.name} branch onto ${rebaseOntoThisBranch.name} branch\n`;
-                 } else {
+                        // set base of current branch on top of 'arg branch'
+                        branchBaseCommit.prev = rebaseOntoThisBranch.curCommit; // rebaseC <-- newCom
+                        rebaseOntoThisBranch.curCommit.branchCommits.push(branchBaseCommit); // rebaseC --> newCom
+
+                        resp = `Rebased ${this.curBranch.name} branch onto ${rebaseOntoThisBranch.name} branch\n`;
+                    } else {
+                        resp = `Rebase cancelled,\n\t${this.curBranch.name} branch is already based on top of ${rebaseOntoThisBranch.name} branch.\n`;
+                    } 
+                } else {
                     resp = `Rebase failed, both ${this.curBranch.name} and ${rebaseOntoThisBranch.name} are in the same commit tree.\n`;
                 }
             } else {
