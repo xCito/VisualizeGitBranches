@@ -60,6 +60,11 @@ class GitCommandProcessor {
             switch(tokens[1]) {
                 case undefined:
                     break;
+                case 'log':
+                    response = `${cmd}\nDisplaying log tree in dev console`;
+                    this.displayCommits(this.rootCommit);
+                    console.log('\n\n');
+                    break; 
                 case 'branch':
                     response = `${cmd}\n${this.branchCommand(tokens[2])}`;
                     break; 
@@ -67,7 +72,7 @@ class GitCommandProcessor {
                     response = `${cmd}\n${this.commitCommand(tokens[2], tokens[3])}`;
                     break; 
                 case 'merge':
-                    response = `${cmd}\n\tMerge things`;
+                    response = `${cmd}\n\t${this.mergeCommand(tokens.slice(2))}`;
                     break; 
                 case 'rebase':
                     response = `${cmd}\n\t${this.rebaseCommand(tokens.slice(2))}`;
@@ -75,8 +80,8 @@ class GitCommandProcessor {
                 case 'checkout':
                     response = `${cmd}\n${this.checkoutCommand(tokens[2])}`;
                     break;
-                    default:
-                        response = `${cmd}\n\tUnknown git command '${tokens[1]}'\n\n`;
+                default:
+                    response = `${cmd}\n\tUnknown git command '${tokens[1]}'\n\n`;
                     break;
             }
         } else {
@@ -147,13 +152,16 @@ class GitCommandProcessor {
         } else {
             resp = `Commit unsuccessful, please follow this pattern:\n\tgit commit -m "Your Message Here"\n\n`;
         }
-        this.displayCommits(this.rootCommit);
-        console.log('\n\n');
+        
         return resp;
     }
 
     rebaseCommand(args) {
         let resp;
+
+        if(!args[0]) {
+            return `Rebase failed, no branch provided\n`;
+        }
 
         if (this.doesBranchExist(args[0])) {
             let rebaseOntoThisBranch = this.getBranchByName(args[0]);
@@ -196,6 +204,33 @@ class GitCommandProcessor {
         }
 
         return resp;
+    }
+
+    mergeCommand(args) {
+        let resp;
+        let branchName = args[0];
+        
+        if(!branchName) {
+            return `Merge failed, to branch provided`;
+        }
+
+        let mergeInThisBranch = this.getBranchByName(branchName);
+        console.log(mergeInThisBranch);
+        // is fast forward possible?
+        if(this.curBranch.curCommit.next === null && this.curBranch.curCommit.branchCommits.length > 0) {
+            let commit = this.curBranch.curCommit.branchCommits.find(c => this.findBranchWithThisCommit(c).name === mergeInThisBranch.name);
+
+            if(!commit) {
+                console.log('cannot fast forward merge this.');
+            } else {
+                this.curBranch.curCommit.branchCommits = this.curBranch.curCommit.branchCommits.filter(c => c.id !== commit.id);
+                this.curBranch.curCommit.next = commit;   
+                this.curBranch.curCommit = mergeInThisBranch.curCommit;
+            }
+            return `Merged in ${mergeInThisBranch.name} branch to ${this.curBranch.name}\n\t\tFast Forward merge\n\n`;
+        }
+
+        return 'merge went bad';
     }
 
     /**
@@ -275,8 +310,8 @@ class GitCommandProcessor {
             return;
         }
         
-        let b = this.branches.filter( b => b.curCommit.id === cur.id )[0];
-        console.log('id=%s | msg=%s | next=%s | prev=%s | bCommits[%s] %s', cur.id, cur.message, cur.next?.message, cur.prev?.message, cur.branchCommits.map(c=>c.message).join(','), b ? ' <---'+b.name+' branch':'');
+        let b = this.branches.filter( b => b.curCommit.id === cur.id ).map(b => b.name).join(', ');
+        console.log('id=%s | msg=%s | next=%s | prev=%s | bCommits[%s] %s', cur.id, cur.message, cur.next?.message, cur.prev?.message, cur.branchCommits.map(c=>c.message).join(','), b ? ' <---('+ b +') branch':'');
         this.displayCommits(cur.next);
         
         for(var i=0; i<cur.branchCommits.length; i++) {
@@ -403,6 +438,7 @@ class Terminal {
                      "    help\t\t\t*shows this menu*\n" +
                      "    clear\t\t\t*clears the terminal*\n" + 
                      "\n xCitoGit Commands\n" +
+                     "    git log\t\t\t*logs full commit tree to dev console*\n" +
                      "    git branch\t\t\t*displays all branches*\n" +
                      "    git branch <branchName>\t*creates a new branch*\n" +
                      "    git checkout <branchName>\t*switches to <branchName>*\n" +
@@ -434,41 +470,41 @@ const terminal = new Terminal();
 
 
 
-let root = new Commit('rt');
-let master = new Branch('master', root);
-master.addNewCommit('c1', false);
-master.addNewCommit('c2', false);
-master.addNewCommit('c3', false);
+// let root = new Commit('rt');
+// let master = new Branch('master', root);
+// master.addNewCommit('c1', false);
+// master.addNewCommit('c2', false);
+// master.addNewCommit('c3', false);
 
-let feature = new Branch('feature', master.curCommit);
-feature.addNewCommit('f1', true);
-feature.addNewCommit('f2', false);
-feature.addNewCommit('f3', false);
+// let feature = new Branch('feature', master.curCommit);
+// feature.addNewCommit('f1', true);
+// feature.addNewCommit('f2', false);
+// feature.addNewCommit('f3', false);
 
-let feature2 = new Branch('feature2', feature.curCommit);
-feature2.addNewCommit('g1', true);
+// let feature2 = new Branch('feature2', feature.curCommit);
+// feature2.addNewCommit('g1', true);
 
-master.addNewCommit('c4', false);
-master.addNewCommit('c5', false)
+// master.addNewCommit('c4', false);
+// master.addNewCommit('c5', false)
 
-let feature3 = new Branch('feature3', master.curCommit);
-feature3.addNewCommit('b1', false);
-feature3.addNewCommit('b2', false);
-feature3.addNewCommit('b3', false);
-let cur = root;
+// let feature3 = new Branch('feature3', master.curCommit);
+// feature3.addNewCommit('b1', false);
+// feature3.addNewCommit('b2', false);
+// feature3.addNewCommit('b3', false);
+// let cur = root;
 
 
-function displayCommits(cur) {
-    if (cur === null || cur === undefined) {
-        return;
-    }
+// function displayCommits(cur) {
+//     if (cur === null || cur === undefined) {
+//         return;
+//     }
 
-    console.log(cur.message + "\t| \tprev: " + cur.prev?.message + "\t|\tnext: " + cur.next?.message + "\t|\tbranchoffs: " + cur.branchCommits.map(c=>c.message));
-    this.displayCommits(cur.next);
+//     console.log(cur.message + "\t| \tprev: " + cur.prev?.message + "\t|\tnext: " + cur.next?.message + "\t|\tbranchoffs: " + cur.branchCommits.map(c=>c.message));
+//     this.displayCommits(cur.next);
     
-    for(var i=0; i<cur.branchCommits.length; i++) {
-        this.displayCommits(cur.branchCommits[i]);
-    }
-}
+//     for(var i=0; i<cur.branchCommits.length; i++) {
+//         this.displayCommits(cur.branchCommits[i]);
+//     }
+// }
 
-displayCommits(root);
+// displayCommits(root);
