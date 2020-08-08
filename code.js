@@ -5,6 +5,8 @@ class Commit {
         this.prev = null;
         this.next = null;
         this.branchCommits = [];
+        this.mergedTo = null;
+        this.isMergeCommit = false;
     }
 
     createId() {
@@ -177,9 +179,9 @@ class GitCommandProcessor {
                         // Remove from branch commits list
                         let branchBaseCommit; 
                         commit.branchCommits = commit.branchCommits.filter(commit => {
-                            if (this.findBranchWithThisCommit(commit).name !== this.curBranch.name)
+                            if (this.findBranchWithThisCommit(commit).name !== this.curBranch.name) {
                                 return true;
-
+                            }
                             branchBaseCommit = commit;
                             return false;                  
                         });
@@ -195,6 +197,7 @@ class GitCommandProcessor {
                     } 
                 } else {
                     resp = `Rebase failed, both ${this.curBranch.name} and ${rebaseOntoThisBranch.name} are in the same commit tree.\n`;
+                    console.log('in live example, a fast-foward is done here'); // TODO: perform a fast-forward
                 }
             } else {
                 resp = `Rebase failed, cannot rebase onto self\n`;
@@ -209,25 +212,53 @@ class GitCommandProcessor {
     mergeCommand(args) {
         let resp;
         let branchName = args[0];
+        let mergeInThisBranch;
         
         if(!branchName) {
-            return `Merge failed, to branch provided`;
+            return `Merge failed, no branch provided`;
         }
 
-        let mergeInThisBranch = this.getBranchByName(branchName);
+        mergeInThisBranch = this.getBranchByName(branchName);
+
+        if(!mergeInThisBranch) {
+            return 'Merge failed, this branch doesnt exist';
+        }
+        if(this.curBranch.name === mergeInThisBranch.name) {
+            return `Merge failed, cannot merge the same branch`;
+        }
+
         console.log(mergeInThisBranch);
+
+        // is already up to date?
+        let commonCommit = this.findCommonAncestor(this.curBranch, mergeInThisBranch);
+        if (commonCommit.id == mergeInThisBranch.curCommit.id) {
+            return 'Already up to date.';
+        }
+
+        // if (commonCommit.id == this.curBranch.curCommit.id) {
+        //     console.log('FF possible');
+        // }
         // is fast forward possible?
-        if(this.curBranch.curCommit.next === null && this.curBranch.curCommit.branchCommits.length > 0) {
+        let hasNextCommit = this.curBranch.curCommit.next !== null;
+        let hasBranchingCommits = this.curBranch.curCommit.branchCommits.length > 0;
+        if (!hasNextCommit && hasBranchingCommits) {
+            // In the current branch's branchCommits, Does the other branch's commit stem from here?
             let commit = this.curBranch.curCommit.branchCommits.find(c => this.findBranchWithThisCommit(c).name === mergeInThisBranch.name);
 
-            if(!commit) {
-                console.log('cannot fast forward merge this.');
-            } else {
+            if(commit) {
                 this.curBranch.curCommit.branchCommits = this.curBranch.curCommit.branchCommits.filter(c => c.id !== commit.id);
                 this.curBranch.curCommit.next = commit;   
                 this.curBranch.curCommit = mergeInThisBranch.curCommit;
+                return `Merged in ${mergeInThisBranch.name} branch to ${this.curBranch.name}\n\t\tFast Forward merge\n\n`;
+            } else {
+                console.log('cannot fast forward merge this.');
             }
-            return `Merged in ${mergeInThisBranch.name} branch to ${this.curBranch.name}\n\t\tFast Forward merge\n\n`;
+        } else {
+            this.curBranch.addNewCommit('Merging with ' + mergeInThisBranch.name + ' branch');
+            mergeInThisBranch.curCommit.mergedTo = this.curBranch.curCommit;
+            this.curBranch.curCommit.isMergeCommit = true;
+            
+            return `Merge successful`;
         }
 
         return 'merge went bad';
@@ -311,7 +342,11 @@ class GitCommandProcessor {
         }
         
         let b = this.branches.filter( b => b.curCommit.id === cur.id ).map(b => b.name).join(', ');
-        console.log('id=%s | msg=%s | next=%s | prev=%s | bCommits[%s] %s', cur.id, cur.message, cur.next?.message, cur.prev?.message, cur.branchCommits.map(c=>c.message).join(','), b ? ' <---('+ b +') branch':'');
+        if (this.curBranch.curCommit.id === cur.id) {
+            b += ', HEAD';
+        }
+        let mergeCommitSym = cur.isMergeCommit ? '(M)' : '';
+        console.log('id=%s | msg=%s | next=%s | prev=%s | bCommits[%s] %s %s', cur.id, cur.message, cur.next?.message, cur.prev?.message, cur.branchCommits.map(c=>c.message).join(','), b ? ' <---('+ b +') branch':'', mergeCommitSym);
         this.displayCommits(cur.next);
         
         for(var i=0; i<cur.branchCommits.length; i++) {
