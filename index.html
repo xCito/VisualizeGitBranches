@@ -5,8 +5,14 @@
         <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="styles/style.css" />
         <link rel="stylesheet" type="text/css" href="styles/terminal.css" />
+        <script src="https://cdn.jsdelivr.net/npm/p5@1/lib/p5.min.js"></script>
     </head>
     <body>
+
+        <div id="canvas-container">
+        </div>
+
+
         <div id="terminal" class="terminal">
             <div id="terminal-head" class="terminal-header">Welcome to Learn Git Visually</div>
             <div id="feed" class="terminal-feed">
@@ -35,10 +41,11 @@
                 <li>git merge (branchname)</li>
             </ul>
         </div>
-        <script src="src/terminal.js"></script>
-        <script src="src/citoGit.js"></script>
-        <script src="src/branch.js"></script>
-        <script src="src/commit.js"></script>
-        <script src="src/code.js"></script>
+        <script src="src/terminal/terminal.js"></script>
+        <script src="src/terminal/citoGit.js"></script>
+        <script src="src/terminal/branch.js"></script>
+        <script src="src/terminal/commit.js"></script>
+        <script src="src/drawings/sketch.js"></script>
+        <script defer src="src/code.js"></script>
     </body>
 </html>
