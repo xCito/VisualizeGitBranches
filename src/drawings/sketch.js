@@ -1,13 +1,12 @@
+let tree = new DrawTree(200,200);
+
 function setup() {
-    let canvas = createCanvas(400, 400);
+    let canvas = createCanvas(displayWidth * 0.66 , displayHeight * 0.66);
     canvas.parent('canvas-container');
+
 }
   
 function draw() {
-if (mouseIsPressed) {
-    fill(0);
-} else {
-    fill(255);
-}
-ellipse(mouseX, mouseY, 80, 80);
+    background('rgba(150,150,150, 0.50)');
+    tree.draw();
 }

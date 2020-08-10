@@ -4,6 +4,11 @@
     margin: 0px;
 }
 
+#canvas-container {
+    position: absolute;
+    right: 0px;
+}
+
 .command-list-container {
     border: 1px solid black;
     width: 350px;
