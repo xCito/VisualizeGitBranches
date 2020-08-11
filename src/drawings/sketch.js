@@ -1,9 +1,9 @@
-let tree = new DrawTree(200,200);
-
+let tree;
 function setup() {
     let canvas = createCanvas(displayWidth * 0.66 , displayHeight * 0.66);
     canvas.parent('canvas-container');
-
+    let root = terminal.gitProcessor.rootCommit;
+    tree = new DrawTree(root);
 }
   
 function draw() {
