@@ -13,6 +13,6 @@ class Commit {
     createId() {
         let randNum = Math.floor(((Math.random() * 899999) + 100000) * 100);
         randNum += Math.floor(Math.random() * 10);
-        return randNum.toString(16);
+        return randNum.toString(16).toUpperCase();
     }
 }
