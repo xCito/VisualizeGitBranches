@@ -24,7 +24,17 @@ class DrawCommit {
             text(this.commitRef.message, this.x+10, this.y-95);
         }
 
+        if(this.commitRef.isMergeCommit) {
+            strokeWeight(4);
+            stroke('green');
+        } else {
+            strokeWeight(.5);
+            stroke('black');
+        }
         circle(this.x, this.y, DIAMETER);
+
+        strokeWeight(.5);
+        stroke('black');
         text(this.commitRef.id, this.x-24, this.y+5);
     }
 }

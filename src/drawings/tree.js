@@ -27,7 +27,6 @@ class DrawTree {
             }
             recursiveDrawHelper(cur.next, x2, y2);
             
-            
             cur.branchCommits.forEach( c => {
                 let down = 100, up = -100;
                 x2 = x + 50;
@@ -47,6 +46,7 @@ class DrawTree {
                 line(x1, y1, x2, y2);
                 recursiveDrawHelper(c, x2, y2);
             });  
+            
 
             let c = new DrawCommit(x1, y1, cur);
             c.draw();
