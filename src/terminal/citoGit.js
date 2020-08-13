@@ -7,8 +7,10 @@ class GitCommandProcessor {
         this.rootCommit = root;
     }
 
-    process(cmd) {
-        cmd = cmd.replace(/\s+/," ");
+    process(inputCmd) {
+
+        let cmd = this.processCommand(inputCmd).original;
+
         let tokens = cmd.split(/\s/).filter(s => s);
         let response = "";
 
@@ -53,6 +55,49 @@ class GitCommandProcessor {
         const startsWithGit = new RegExp(/^git\s?/);
         let result = startsWithGit.exec(cmd);
         return result ? true : false;
+    }
+
+    processCommand(cmd) {
+        let commandObj = {
+            original: null,
+            processed: null,
+            flags: []
+        };
+        commandObj.original = cmd;
+        commandObj.flags = this.getFlags(cmd);
+        commandObj.processed = this.extractFlags(cmd)
+                                .replace(/\s+/g," ")
+                                .trim();
+
+        return commandObj;
+    }
+
+    
+    getFlags(cmd) {
+        const flagsPattern = new RegExp(/-[A-Za-z]+/, 'g');
+        let flags = cmd.match(flagsPattern);
+        let flagArr = [];
+
+        if (flags) {
+         flagArr = [...cmd.match(flagsPattern)]
+            .reduce((flags, str) => {
+                flags.push( ...str.match(/[a-zA-z]/g) );
+                return flags;
+            }, []);
+        }
+
+        return [...new Set(flagArr)];
+    }
+
+    extractFlags(cmd) {
+        const flagsPattern = new RegExp(/-[A-Za-z]+/, 'g');
+        let filteredCmd = "";
+        if (flagsPattern.test(cmd)) {
+            filteredCmd = cmd.replace(flagsPattern, '');
+        } else {
+            filteredCmd = cmd;
+        }
+        return filteredCmd;
     }
 
     branchCommand(arg) {
