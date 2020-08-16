@@ -9,46 +9,50 @@ class GitCommandProcessor {
 
     process(inputCmd) {
 
-        let cmd = this.processCommand(inputCmd).original;
+        let cmd = this.processCommand(inputCmd);
+        console.log(cmd);
+        let prefix = `${inputCmd}\n`;
+        let postfix = '\n\n';
+        let response;
 
-        let tokens = cmd.split(/\s/).filter(s => s);
-        let response = "";
+        if (this.startsWithGit(cmd.original)) {
+            response = `This is custom CitoGit\n\tversion - 1.0.0\n\n`;
 
-        if(this.startsWithGit(tokens[0])) {
-            response = `${cmd}\n\tThis is custom CitoGit\n\tversion - 1.0.0\n\n`;
-
-            switch(tokens[1]) {
-                case undefined:
+            switch (cmd.command) {
+                case undefined: // should not get here
                     break;
                 case 'log':
-                    response = `${cmd}\nDisplaying log tree in dev console`;
+                    response = `Displaying log tree in dev console`;
                     this.displayCommits(this.rootCommit);
                     console.log('\n\n');
                     break; 
                 case 'branch':
-                    response = `${cmd}\n${this.branchCommand(tokens[2])}`;
+                    response = `${this.branchCommand(cmd.flags, cmd.args)}`;
+                    break; 
+                case 'switch':
+                    response = `${this.switchCommand(cmd.flags, cmd.args)}`;
                     break; 
                 case 'commit':
-                    response = `${cmd}\n${this.commitCommand(tokens[2], tokens[3])}`;
+                    response = `${this.commitCommand(cmd.flags, cmd.args)}`;
                     break; 
+                case 'checkout':
+                    response = `${this.checkoutCommand(cmd.flags, cmd.args)}`;
+                    break;
                 case 'merge':
-                    response = `${cmd}\n\t${this.mergeCommand(tokens.slice(2))}`;
+                    response = `${this.mergeCommand(cmd.flags, cmd.args)}`;
                     break; 
                 case 'rebase':
-                    response = `${cmd}\n\t${this.rebaseCommand(tokens.slice(2))}`;
-                    break;
-                case 'checkout':
-                    response = `${cmd}\n${this.checkoutCommand(tokens[2])}`;
+                    response = `${this.rebaseCommand(cmd.flags, cmd.args)}`;
                     break;
                 default:
-                    response = `${cmd}\n\tUnknown git command '${tokens[1]}'\n\n`;
+                    response = ` Unknown git command '${cmd.command}'`;
                     break;
             }
         } else {
-            response = `${cmd}\n\tError: Invalid Input\n\tI dont know what '${tokens[0]}' is. :(\n\n`;
+            response = ` Error: Invalid Input\n\tI dont know what '${cmd.original}' is. :(`;
         }
 
-        return response;
+        return prefix + response + postfix;
     }
 
     startsWithGit(cmd) {
@@ -60,37 +64,46 @@ class GitCommandProcessor {
     processCommand(cmd) {
         let commandObj = {
             original: null,
-            processed: null,
-            flags: []
+            command: null,
+            flags: [],
+            args: []
         };
+        cmd = cmd.trim();
         commandObj.original = cmd;
         commandObj.flags = this.getFlags(cmd);
-        commandObj.processed = this.extractFlags(cmd)
+
+        let tempCmd = this.extractFlags(cmd)
                                 .replace(/\s+/g," ")
                                 .trim();
-
+        commandObj.args = this.extractArgs(tempCmd);
+        commandObj.command = tempCmd.split(/\s+/)[1];
         return commandObj;
     }
 
     
     getFlags(cmd) {
-        const flagsPattern = new RegExp(/-[A-Za-z]+/, 'g');
+        const flagsPattern = new RegExp(/--[a-z]+|-[a-z]+/, 'gi');
         let flags = cmd.match(flagsPattern);
         let flagArr = [];
-
+        
         if (flags) {
          flagArr = [...cmd.match(flagsPattern)]
             .reduce((flags, str) => {
-                flags.push( ...str.match(/[a-zA-z]/g) );
+                if(str.search(/^--[a-z]{2,}$/im) !== -1)
+                    flags.push(str);
+                else if( str.search(/^-[a-z]$/im) !== -1)
+                    flags.push(str)
+                else
+                    flags.push( ...str.match(/[a-z]/gi).map( f => `-${f}`) );
                 return flags;
             }, []);
         }
-
+        
         return [...new Set(flagArr)];
     }
 
     extractFlags(cmd) {
-        const flagsPattern = new RegExp(/-[A-Za-z]+/, 'g');
+        const flagsPattern = new RegExp(/--[a-z]+|-[a-z]+/, 'gi');
         let filteredCmd = "";
         if (flagsPattern.test(cmd)) {
             filteredCmd = cmd.replace(flagsPattern, '');
@@ -100,65 +113,352 @@ class GitCommandProcessor {
         return filteredCmd;
     }
 
-    branchCommand(arg) {
-        let resp;
-        if(!arg) {
-            console.log('no args, list all branches for response');
-            let branchNames = this.branches.reduce((acc,cur,i) => {
-                let curBranchSymbol = this.curBranch.name === cur.name ? ' * ':' ';
-                return `${acc}${i+1})${curBranchSymbol}${cur.name}\n`;
-            }, "");
-            resp = `All Branches:\n${branchNames}\n`;
+    extractArgs(cmdWithoutFlags) {
+        let quotedArg = cmdWithoutFlags.match(/".*"+?/);
+        let cmd = cmdWithoutFlags;
+        let allArgs = [];
+        if(quotedArg) {
+            allArgs.push(...quotedArg);
+            cmd = cmdWithoutFlags.replace(quotedArg, '');
+        } 
+        let args = cmd.split(/\s/).filter(s => s).slice(2);
+        allArgs.unshift(...args);
+        return allArgs;
+    }
+
+    // ---------------------------------- BRANCH ---------------------------------- //
+    /**
+     * @param {Array<string>} flags
+     * @param {Array<string>} args
+     * @return {string} - command result message
+     */
+    branchCommand(flags, args) {
+        let resp = '';
+
+        if(flags.length == 0) {
+            
+            if(args.length === 0) { // list all branches
+                let branchNames = this.getListOfAllBranches();
+                resp = `${branchNames}`;
+            } else {                // create branch(s);
+                resp = this.createBranches(args);
+            }
         } else {
-            if(!this.doesBranchExist(arg)) {
-                this.branches.push(new Branch(arg, this.curBranch.curCommit));
-                resp = `Created branch '${arg}'\n`;
-            } else {
-                resp = `Branch with name '${arg}' already exists\n\tno new branch created.\n\n`;
+            for(let flag of flags) {
+                let warnMsg = `\t${flag} and ${flags.filter(f => f != flag).join()}` +  
+                                ' dont work together\n\tor the other flag(s) are not available';
+                switch(flag) {
+                    case '-m':
+                        if (flags.length > 1) 
+                            resp = warnMsg;
+                        else if (args.length > 2 || args.length < 2) 
+                            resp = ` 2 arguments are required`;
+                        else { 
+                            resp = this.moveBranch(args);
+                        }
+                        break;
+                    case '-c':
+                        if (flags.length > 1) 
+                            resp = warnMsg;
+                        else if (args.length > 2 || args.length < 2) 
+                            resp = ` 2 branches are required`;
+                        else { 
+                            resp = this.copyBranch(args);
+                        }
+                        break;
+                    case '-d': 
+                        if (flags.length > 1) 
+                            resp = warnMsg;
+                        else if (args.length < 1) 
+                            resp = ` Atleast 1 branch is required`;
+                        else 
+                            resp = this.deleteBranches(args);
+                        break;
+                    case '--list': 
+                        if (flags.length > 1) 
+                                resp = warnMsg;
+                        else
+                            resp = `${this.getListOfAllBranches()}`;
+                        break;
+                    default:
+                        resp = ` ${flag} not available`;
+                        break;
+                }
             }
         }
 
         return resp;
     }
 
-    checkoutCommand(arg) {
-        let resp;
-        if (arg) {
-            if (this.doesBranchExist(arg)) {
-                this.curBranch = this.getBranchByName(arg);
-                console.log('now the current branch is ' + this.curBranch.name);
-                resp = `\tSwitched the '${arg}' branch.\n`;
-            } else {
-                resp = `Branch name '${arg}' doesnt exist\n`;
+    /**
+     * @return {string} - numbered list of all branch. 
+     */
+    getListOfAllBranches() {
+        return this.branches
+            .map( (b) => this.curBranch.name !== b.name ? b.name : `* ${b.name}`)
+            .map( (bName,i) => `  ${i+1}) ${bName}`)
+            .join('\n');
+    }
+
+    /**
+     * @param {Array<string>} names - names of branches to create.
+     * @return {string} - console output message.  
+     */
+    createBranches(names) {
+        let resp = '';
+        for(let branchName of names) {
+            if ( this.doesBranchExist(branchName) ) {
+                resp = ` Branch with name '${branchName}' already exists\n no new branch created.`;
+                return resp;
             }
+        }
+
+        names.forEach( (branchName, i) => {
+            this.branches.push(new Branch(branchName, this.curBranch.curCommit));
+            resp += ` Created new branch '${branchName}' ${i === names.length-1 ? '' : '\n'}`;
+        });
+
+        return resp;
+    }
+
+    /**
+    * @param {Array<string>} names - names of branches to delete.
+    * @return {string} - console output message.  
+    */
+    deleteBranches(names) {
+        let resp = '';
+        for(let branchName of names) {
+            if ( !this.doesBranchExist(branchName) ) {
+                resp = ` '${branchName}' doesnt exist\n no branch deleted.`;
+                return resp;
+            }
+        }
+
+        names.forEach( (branchName, i) => {
+            this.branches = this.branches.filter( b => b.name !== branchName);
+            resp += ` '${branchName}' branch deleted ${i === names.length - 1 ? '' : '\n'}`;
+        });
+
+        return resp;
+    }
+
+    /**
+     * @param {Array<string>} args - array with two branch names.
+     * @return {string} console output message.
+     */
+    copyBranch(args) {
+        let target = args[0];
+        let copy = args[1];
+        let resp;
+        if(!this.doesBranchExist(target))
+            resp = ` ${target} branch does not exist\n\tcopy failed`;
+        else if (this.doesBranchExist(copy)) {
+            resp = ` branch with name '${copy}' already exists\n\tcopy failed`;     
         } else {
-            resp = `Missing branch name: git checkout <branchName>\n`;
+            let branchCopy = Branch.copyBranch( this.getBranchByName(target), copy );
+            this.branches.push(branchCopy);
+            resp = ` branch copied!`;
+        }
+        return resp;
+    }
+
+    /**
+     * @param {Array<string>} args - specifically length 2, holding name of branch and new branch name.
+     * @return {string} console output message.
+     */
+    moveBranch(args) {
+        let target = args[0];
+        let move = args[1];
+        let resp;
+        if(!this.doesBranchExist(target))
+            resp = ` ${target} branch does not exist\n\tmove failed`;
+        else if (this.doesBranchExist(move)) {
+            resp = ` branch with name '${move}' already exists\n\tcopy failed`;     
+        } else {
+            this.getBranchByName(target).name = move;
+            resp = ` branch moved/renamed!`;
+        }
+        return resp;
+    }
+
+    // ---------------------------------- SWITCH ---------------------------------- //
+    /**
+     * @param {Array<string>} flags
+     * @param {Array<string>} args
+     * @return {string} - command result message
+     */
+    switchCommand(flags, args) {
+        let resp;
+
+        if(flags.length === 0) {
+            if(args.length > 1) {
+                resp = ` switch unsuccessful, too many arguments\n\tgit switch <branchName>`;
+            } else if (args.length === 0){
+                resp = ` switch unsuccessful, no arguments provided\n\tgit switch <branchName>`;
+            } else 
+                resp = this.switchToDifferentBranch(args[0]);
+        } else {
+            for(let flag of flags) {
+                switch(flag) {
+                    case '-c':
+                    case '--create':
+                        if (args.length == 0 || args[0] === undefined)
+                            resp = ` no branch name provided, follow this format\n\tgit switch [-c|--create] <branchName>\n\n`;
+                        else 
+                            resp = `${this.createBranches([args[0]])}\n${this.switchToDifferentBranch(args[0])}\n`;
+                        break;
+                    default:
+                        resp = ` ${flag} not available`;
+                        break;
+                }
+            }
+        }
+        return resp;
+    }
+
+    /**
+     * @param {string} branchName - a branch name.
+     * @return {string} - console ouput message.
+     */
+    switchToDifferentBranch(branchName) {
+        let resp;
+        if (!this.doesBranchExist(branchName)) {
+            resp = ` branch switch/change failed, ${branchName} doesnt exist`;
+        } else {
+            if(this.curBranch.name === branchName) {
+                resp = ` already in ${branchName} branch`;
+            } else {
+                this.curBranch = this.getBranchByName(branchName);
+                resp = ` switch successful, now in '${branchName}' branch`;
+            }
+        }
+        return resp;
+    }
+    // ---------------------------------- CHECKOUT ---------------------------------- //
+    /**
+     * @param {Array<string>} flags
+     * @param {Array<string>} args
+     * @return {string} - command result message
+     */
+    checkoutCommand(flags, args) {
+        let resp;
+        if (flags.length === 0) {
+            if(args.length === 0) 
+                resp = ` no branch name provided, follow this format\n\tgit checkout <branchName>`;
+            else if (args.length > 1)
+                resp = ` too many arguments, follow this format\n\tgit checkout <branchName>`;
+            else 
+                resp = this.switchToDifferentBranch(args[0]);
+        } else {
+            for(let flag of flags) {
+                switch(flag) {
+                    case '-b':
+                        if (args.length == 0)
+                            resp = `no branch name provided, follow this format\n\tgit checkout -b <branchName>\n\n`;
+                        else if (args.length > 1)
+                            resp = `too many arguments, follow this format\n\tgit checkout -b <branchName>\n\n`;
+                        else {
+                            let bName = args[0];
+                            resp = this.createBranches([bName]) + '\n' +
+                                    this.switchToDifferentBranch(bName);
+                        }
+                        break;
+                    default:
+                        resp = `${flag} not available`;
+                        break;
+                }
+            }
         }
 
         return resp;
     }
 
-    commitCommand(mFlag, arg) {
+    // ---------------------------------- COMMIT ---------------------------------- //
+    /**
+     * @param {Array<string>} flags
+     * @param {Array<string>} args
+     * @return {string} - command result message
+     */
+    commitCommand(flags, args) {
         let resp;
-        let msgPatt = new RegExp(/".+"/);
-
-        if(mFlag === '-m' && arg && msgPatt.test(arg)) {
-            let msg = arg.replace(/"/g, '');
-            this.curBranch.addNewCommit(msg);
-
-            resp = `Added new commit to ${this.curBranch.name} branch\n\twith message: "${msg}"\n`;
-        } else if (!mFlag && arg === undefined){
-            let msg = this.curBranch.name+'Commit' + this.curBranch.numCommits;
-            this.curBranch.addNewCommit(msg);
-
-            resp = `Added new commit to ${this.curBranch.name} branch\n\twith message: "${msg}"\n`;
+        
+        if(flags.length == 0) {
+            if(args.length > 0) {
+                resp = `follow this format:\n\tgit commit -m "Your Message Here"\n\n`;
+            } else {
+                this.addCommitToBranch(this.curBranch, `"${this.curBranch.name + this.curBranch.numCommits}"`);
+                resp = ` Commit successful using default message`;
+            }
         } else {
-            resp = `Commit unsuccessful, please follow this pattern:\n\tgit commit -m "Your Message Here"\n\n`;
+            for(let flag of flags) {
+                let warnMsg = `\t${flag} and ${flags.filter(f => f != flag).join()}` +  
+                                ' dont work together\n\tor the other flag(s) are not available';
+                switch(flag) {
+                    case '-m':
+                        if (flags.some(f => f === '--amend'))
+                            break;
+                        else if (args.length == 0 || args[0] === undefined)
+                            resp = ` no message provided, follow this format:\n\tgit commit -m "Your Message Here"`;
+                        else 
+                            resp = this.addCommitToBranch(this.curBranch, args[0]);
+                        break;
+                    case '--amend':
+                        if ( !flags.some(f => f === '-m') )
+                            resp = ` missing -m flag, follow this format:\n\tgit commit --amend -m "Your Message Here"`
+                        else if (args.length === 0) 
+                            resp = ` no message provided, follow this format:\n\tgit commit -m "Your Message Here"`;
+                        else     
+                            resp = this.amendBranchCommit(this.curBranch, args[0]);
+                        break;    
+                    default:
+                        resp = `${flag} not available`;
+                        break;
+                }
+            }
         }
         
         return resp;
     }
 
+    /**
+     * @param {Branch} branch - branch instance
+     * @param {string} msg - the commit message with quotes
+     */
+    addCommitToBranch(branch, msg) {
+        let msgPatt = /".*"/g;
+        let resp;
+        if (msg.search(msgPatt) === -1) {
+            resp = `Commit unsuccessful, please follow this format\n\tgit commit -m "Your Message Here"\n\n`;
+        } else {
+            let message = msg.replace(/"/g, '');
+            branch.addNewCommit(message);
+            resp = 'Commit successful';
+        }
+        return resp;
+    }
+
+        /**
+     * @param {Branch} branch - branch instance
+     * @param {string} msg - the commit message with quotes
+     */
+    amendBranchCommit(branch, msg) {
+        let msgPatt = /".*"/g;
+        let resp;
+        if (msg.search(msgPatt) === -1) {
+            resp = ` Amend unsuccessful, please follow this format\n\tgit commit --amend -m "Your Message Here"`;
+        } else {
+            let message = msg.replace(/"/g, '');
+            branch.curCommit.message = message;
+            resp = ' Amend successful';
+        }
+        return resp;
+    }
+    // ---------------------------------- REBASE ---------------------------------- //
+    /**
+     * @param {Array<string>} flags
+     * @param {Array<string>} args
+     * @return {string} - command result message
+     */
     rebaseCommand(args) {
         let resp;
 
@@ -210,6 +510,12 @@ class GitCommandProcessor {
         return resp;
     }
 
+    // ---------------------------------- MERGE ---------------------------------- //
+    /**
+     * @param {Array<string>} flags
+     * @param {Array<string>} args
+     * @return {string} - command result message
+     */
     mergeCommand(args) {
         let resp;
         let branchName = args[0];
@@ -265,7 +571,9 @@ class GitCommandProcessor {
         return 'merge went bad';
     }
 
+    // ---------------------------------- UTILTIY / HELPER ---------------------------------- //
     /**
+     * @param {string} branch - a branch name 
      * @return {boolean}
      */
     doesBranchExist(branchName) {
@@ -279,17 +587,17 @@ class GitCommandProcessor {
     }
 
     /**
-     * @return {Branch}
+     * @param {string} branch - a branch name.
+     * @return {Branch} Returns respective Branch object or undefined if not found.
      */
     getBranchByName(branchName) {
         return this.branches.find( b => b.name === branchName);
     }
 
     /**
-     * This function finds the first commit both 
-     * branches have in common. 
-     * @param {Branch} branch1 - A git branch
-     * @param {Branch} branch2 - Another git branch
+     * Finds the first commit both branches share. 
+     * @param {Branch} branch1 - A branch
+     * @param {Branch} branch2 - Another branch
      * @return {Commit} The branches' common commit or null if non found
      */
     findCommonAncestor(branch1, branch2) {
@@ -320,6 +628,7 @@ class GitCommandProcessor {
         return null;    
     }
 
+    // TODO: double check this function
     findBranchWithThisCommit(commit) {
         let cur = commit;
         

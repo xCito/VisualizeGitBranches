@@ -22,4 +22,16 @@ class Branch {
         ++this.numCommits;
         return c1;
     }
+
+    /**
+     * @param {Branch} branch - a branch instance
+     * @param {string} name - name for the new branch being created
+     * @return {Branch} deep copy of branch passed in.
+     */
+    static copyBranch(branch, name) {
+        let newBranch = new Branch(name, branch.curCommit);
+        newBranch.numCommits = branch.numCommits;
+
+        return newBranch;
+    }
 }
