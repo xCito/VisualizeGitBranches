@@ -459,55 +459,141 @@ class GitCommandProcessor {
      * @param {Array<string>} args
      * @return {string} - command result message
      */
-    rebaseCommand(args) {
+    rebaseCommand(flags, args) {
         let resp;
 
-        if(!args[0]) {
-            return `Rebase failed, no branch provided\n`;
-        }
-
-        if (this.doesBranchExist(args[0])) {
-            let rebaseOntoThisBranch = this.getBranchByName(args[0]);
-
-            if(this.curBranch.name !== rebaseOntoThisBranch.name) {
-                let commit = this.findCommonAncestor(this.curBranch, rebaseOntoThisBranch);
-                let isFromSameCommitTree = commit.branchCommits.length === 0 
-                                           || commit.branchCommits.some(c => this.findBranchWithThisCommit(c).name !== this.curBranch.name);
-
-                if(!isFromSameCommitTree) {                
-
-                    if (commit.id !== rebaseOntoThisBranch.curCommit.id) {
-                        // Remove from branch commits list
-                        let branchBaseCommit; 
-                        commit.branchCommits = commit.branchCommits.filter(commit => {
-                            if (this.findBranchWithThisCommit(commit).name !== this.curBranch.name) {
-                                return true;
-                            }
-                            branchBaseCommit = commit;
-                            return false;                  
-                        });
-                        console.log('base commit for %s, \n %o', this.curBranch.name, branchBaseCommit);
-
-                        // set base of current branch on top of 'arg branch'
-                        branchBaseCommit.prev = rebaseOntoThisBranch.curCommit; // rebaseC <-- newCom
-                        rebaseOntoThisBranch.curCommit.branchCommits.push(branchBaseCommit); // rebaseC --> newCom
-
-                        resp = `Rebased ${this.curBranch.name} branch onto ${rebaseOntoThisBranch.name} branch\n`;
-                    } else {
-                        resp = `Rebase cancelled,\n\t${this.curBranch.name} branch is already based on top of ${rebaseOntoThisBranch.name} branch.\n`;
-                    } 
-                } else {
-                    resp = `Rebase failed, both ${this.curBranch.name} and ${rebaseOntoThisBranch.name} are in the same commit tree.\n`;
-                    console.log('in live example, a fast-foward is done here'); // TODO: perform a fast-forward
-                }
+        if (flags.length === 0) {
+            if(args.length === 0) {
+                resp = ' Rebase failed, missing a branch name';
+            } else if (args.length > 1){
+                resp = ' Too many arguments';
+            } else if (!this.doesBranchExist(args[0])){
+                resp = ' branch doesnt exist';
             } else {
-                resp = `Rebase failed, cannot rebase onto self\n`;
+                let target = this.getBranchByName(args[0]);
+                let commonCommit = this.findCommonAncestor(target, this.curBranch);
+
+                if(target.curCommit.id === commonCommit.id) {
+                    resp = ' already upto date';
+                } else if(this.curBranch.curCommit.id === commonCommit.id) {
+                    this.fastForwardBranch(target, this.curBranch, commonCommit);
+                    resp  = ` fastforwarded ${this.curBranch.name} branch to ${target.name} branch`;
+                } else {        
+                    this.rebaseBranch(target, this.curBranch, commonCommit);
+                    resp  = ` rebased ${this.curBranch.name} branch onto ${target.name} branch`;
+                }
             }
         } else {
-            resp = `Branch '${args}' doesnt exist.\n`;
+            for(let flag of flags) {
+                switch(flag) {
+                    default:
+                        resp = `${flag} not available`;
+                        break;
+                }
+
+            } 
         }
 
+        // TODO: Make rebase command follow the new format!!!
+
+
+
+
+        // if(!args[0]) {
+        //     return `Rebase failed, no branch provided\n`;
+        // }
+
+        // if (this.doesBranchExist(args[0])) {
+        //     let rebaseOntoThisBranch = this.getBranchByName(args[0]);
+
+        //     if(this.curBranch.name !== rebaseOntoThisBranch.name) {
+        //         let commit = this.findCommonAncestor(this.curBranch, rebaseOntoThisBranch);
+        //         let isFromSameCommitTree = commit.branchCommits.length === 0 
+        //                                    || commit.branchCommits.some(c => this.findBranchWithThisCommit(c).name !== this.curBranch.name);
+
+        //         if(!isFromSameCommitTree) {                
+
+        //             if (commit.id !== rebaseOntoThisBranch.curCommit.id) {
+        //                 // Remove from branch commits list
+        //                 let branchBaseCommit; 
+        //                 commit.branchCommits = commit.branchCommits.filter(commit => {
+        //                     if (this.findBranchWithThisCommit(commit).name !== this.curBranch.name) {
+        //                         return true;
+        //                     }
+        //                     branchBaseCommit = commit;
+        //                     return false;                  
+        //                 });
+        //                 console.log('base commit for %s, \n %o', this.curBranch.name, branchBaseCommit);
+
+        //                 // set base of current branch on top of 'arg branch'
+        //                 branchBaseCommit.prev = rebaseOntoThisBranch.curCommit; // rebaseC <-- newCom
+        //                 rebaseOntoThisBranch.curCommit.branchCommits.push(branchBaseCommit); // rebaseC --> newCom
+
+        //                 resp = `Rebased ${this.curBranch.name} branch onto ${rebaseOntoThisBranch.name} branch\n`;
+        //             } else {
+        //                 resp = `Rebase cancelled,\n\t${this.curBranch.name} branch is already based on top of ${rebaseOntoThisBranch.name} branch.\n`;
+        //             } 
+        //         } else {
+        //             resp = `Rebase failed, both ${this.curBranch.name} and ${rebaseOntoThisBranch.name} are in the same commit tree.\n`;
+        //             console.log('in live example, a fast-foward is done here'); // TODO: perform a fast-forward
+        //         }
+        //     } else {
+        //         resp = `Rebase failed, cannot rebase onto self\n`;
+        //     }
+        // } else {
+        //     resp = `Branch '${args}' doesnt exist.\n`;
+        // }
+
         return resp;
+    }
+
+    /**
+     * @param {Branch} targetBranch - branch that is being rebased on to. (j)
+     * @param {Branch} sourceBranch - branch that is being fastforwarded on to. (m)
+     * @param {Commit} branchingCommit - commit that will be detached and rebased.
+     */
+    fastForwardBranch(targetBranch, sourceBranch, branchingCommit) {
+        let cur = targetBranch.curCommit;
+        let commitA;
+        while (cur.prev.id !== branchingCommit.id) { 
+            cur = cur.prev; 
+        }
+        commitA = cur;
+
+        // Remove branchingCommit from list of branchCommits
+        sourceBranch.curCommit.branchCommits = sourceBranch.curCommit.branchCommits.filter(c => c.id !== commitA.id);
+
+        // Set targetBranch next commit to be the branchingCommit
+        sourceBranch.curCommit.next = commitA; 
+        commitA.prev = sourceBranch.curCommit;  
+
+        // Move targetBranch to other branch's current commit
+        let cur2 = branchingCommit;
+        while (cur2.next !== null) {
+            cur2 = cur2.next;
+        }
+        sourceBranch.curCommit = cur2;
+    }
+
+    /**
+     * @param {Branch} targetBranch - the branch that we are rebasing onto.
+     * @param {Branch} sourceBranch - the branch that is being detached and moved up.
+     * @param {Commit} branchingCommit - the two branches' common commit.
+     */
+    rebaseBranch(targetBranch, sourceBranch, branchingCommit) {
+        let cur = sourceBranch.curCommit;
+        let sourceFirstCommit;
+        while (cur.prev.id !== branchingCommit.id) { 
+            cur = cur.prev; 
+        }
+        sourceFirstCommit = cur;
+
+        // Remove branch base from list of branchCommits
+        branchingCommit.branchCommits = branchingCommit.branchCommits.filter(c => c.id !== sourceFirstCommit.id);
+
+        // Add source branch base to target branch's list of branchCommits
+        targetBranch.curCommit.branchCommits.push( sourceFirstCommit );
+        sourceFirstCommit.prev = targetBranch.curCommit;
     }
 
     // ---------------------------------- MERGE ---------------------------------- //
