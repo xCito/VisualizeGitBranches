@@ -35,6 +35,14 @@ class Terminal {
         this.#terminalHeader.addEventListener('mouseup', () => this.isHeld = false);
         this.#terminalElem.style.left = '0px';
         this.#terminalElem.style.top = '0px';
+        this.center();
+    }
+
+    center() {
+        let terminalWidth = this.#terminalElem.getBoundingClientRect().width;
+        let terminalHeight = this.#terminalElem.getBoundingClientRect().height;
+        this.#terminalElem.style.left = (window.innerWidth/2) - (terminalWidth/2) + 'px';
+        this.#terminalElem.style.top = (window.innerHeight) - (terminalHeight + 30) + 'px';
     }
 
     _handleKeyPress(e) {
@@ -143,3 +151,5 @@ class Terminal {
         this.#commandLineElem.focus();
     }
 }
+
+const terminal = new Terminal();

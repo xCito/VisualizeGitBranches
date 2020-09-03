@@ -4,19 +4,21 @@ class GitCommandProcessor {
         let master = new Branch('master', root);
         this.branches = [master];
         this.curBranch = master;
+        this.head = master.curCommit;
         this.rootCommit = root;
+        observableBranches.setState(master, 'NEW');
     }
 
     process(inputCmd) {
 
         let cmd = this.processCommand(inputCmd);
-        console.log(cmd);
+        // console.log(cmd);
         let prefix = `${inputCmd}\n`;
         let postfix = '\n\n';
         let response;
 
         if (this.startsWithGit(cmd.original)) {
-            response = `This is custom CitoGit\n\tversion - 1.0.0\n\n`;
+            response = `This is custom CitoGit\n\tversion - 1.0.0`;
 
             switch (cmd.command) {
                 case undefined: // should not get here
@@ -214,8 +216,10 @@ class GitCommandProcessor {
         }
 
         names.forEach( (branchName, i) => {
-            this.branches.push(new Branch(branchName, this.curBranch.curCommit));
+            let branch = new Branch(branchName, this.curBranch.curCommit);
+            this.branches.push(branch);
             resp += ` Created new branch '${branchName}' ${i === names.length-1 ? '' : '\n'}`;
+            observableBranches.setState(branch, 'NEW');
         });
 
         return resp;
@@ -232,7 +236,11 @@ class GitCommandProcessor {
                 resp = ` '${branchName}' doesnt exist\n no branch deleted.`;
                 return resp;
             }
-        }
+            if (this.curBranch.name === branchName) {
+                resp = ` cannot delete '${branchName}'\n currently being referenced (youre on that branch)`;
+                return resp;
+            }
+         }
 
         names.forEach( (branchName, i) => {
             this.branches = this.branches.filter( b => b.name !== branchName);
@@ -329,6 +337,7 @@ class GitCommandProcessor {
                 resp = ` already in ${branchName} branch`;
             } else {
                 this.curBranch = this.getBranchByName(branchName);
+                observableBranches.setState(this.curBranch, 'HEAD');
                 resp = ` switch successful, now in '${branchName}' branch`;
             }
         }
@@ -431,7 +440,8 @@ class GitCommandProcessor {
             resp = `Commit unsuccessful, please follow this format\n\tgit commit -m "Your Message Here"\n\n`;
         } else {
             let message = msg.replace(/"/g, '');
-            branch.addNewCommit(message);
+            let commit = branch.addNewCommit(message);
+            observableCommits.setState(commit, branch, "NEW");
             resp = 'Commit successful';
         }
         return resp;
@@ -553,12 +563,16 @@ class GitCommandProcessor {
      * @param {Commit} branchingCommit - commit that will be detached and rebased.
      */
     fastForwardBranch(targetBranch, sourceBranch, branchingCommit) {
+        console.log(sourceBranch);
+        console.log(targetBranch);
+        console.log(branchingCommit);
         let cur = targetBranch.curCommit;
         let commitA;
         while (cur.prev.id !== branchingCommit.id) { 
             cur = cur.prev; 
         }
         commitA = cur;
+        console.log(commitA);
 
         // Remove branchingCommit from list of branchCommits
         sourceBranch.curCommit.branchCommits = sourceBranch.curCommit.branchCommits.filter(c => c.id !== commitA.id);
@@ -573,6 +587,7 @@ class GitCommandProcessor {
             cur2 = cur2.next;
         }
         sourceBranch.curCommit = cur2;
+        observableBranches.setState(null, 'UPDATE');
     }
 
     /**
@@ -594,6 +609,7 @@ class GitCommandProcessor {
         // Add source branch base to target branch's list of branchCommits
         targetBranch.curCommit.branchCommits.push( sourceFirstCommit );
         sourceFirstCommit.prev = targetBranch.curCommit;
+        observableBranches.setState(null, 'UPDATE');
     }
 
     // ---------------------------------- MERGE ---------------------------------- //
@@ -663,12 +679,12 @@ class GitCommandProcessor {
      * @return {boolean}
      */
     doesBranchExist(branchName) {
-        console.log(branchName);
-        console.log(this.branches);
-        console.log(this.branches.some( b => {
-            console.log(b.name, branchName);
-            return b.name === branchName;
-        }));
+        // console.log(branchName);
+        // console.log(this.branches);
+        // console.log(this.branches.some( b => {
+        //     // console.log(b.name, branchName);
+        //     return b.name === branchName;
+        // }));
         return this.branches.some( b => b.name === branchName);
     }
 
