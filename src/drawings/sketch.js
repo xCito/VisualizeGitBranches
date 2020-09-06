@@ -1,11 +1,15 @@
+let canvasWidth;
+let canvasHeight;
 let zoom = 1.0;
 let panX = 0;
 let panY = 0;
 let tree;
-let commits = [];
 
 function setup() {
-    let canvas = createCanvas(windowWidth , windowHeight-300);
+    canvasWidth = windowWidth-300;
+    canvasHeight = windowHeight-300;
+    
+    let canvas = createCanvas(canvasWidth , canvasHeight);
     canvas.parent('canvas-container');
     canvas.id('theCanvas');
     let root = terminal.gitProcessor.rootCommit;
@@ -23,8 +27,10 @@ function draw() {
 }
 
 function mouseWheel(event) {
-    zoom += 0.0005 * event.delta;
-    return false;
+    if (event.target.id === 'theCanvas') {
+        zoom += 0.0005 * event.delta;
+        return false;
+    }
 }
 
 function mouseDragged(event) {
@@ -35,6 +41,9 @@ function mouseDragged(event) {
     }
 }
 
+function windowResized() {
+    resizeCanvas(canvasWidth , canvasHeight);
+}
 function drawCrossAtOrigin() {
     line(0,0, 100, 0);
     line(0,0, 0, 100);

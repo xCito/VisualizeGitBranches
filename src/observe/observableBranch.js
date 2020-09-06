@@ -8,7 +8,7 @@ class ObservableBranch {
         };
         this.BRANCH_CHANGE_TYPE = {
             NEW: 'NEW',
-            DELETED: 'DELETE',
+            DELETE: 'DELETE',
             HEAD: 'HEAD',
             UPDATE: 'UPDATE'
         };

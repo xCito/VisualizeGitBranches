@@ -9,10 +9,6 @@
     </head>
     <body>
 
-        <div id="canvas-container">
-        </div>
-
-
         <div id="terminal" class="terminal">
             <div id="terminal-head" class="terminal-header">Welcome to Learn Git Visually</div>
             <div id="feed" class="terminal-feed">
@@ -22,25 +18,34 @@
                 </div>
             </div>
         </div>
+        
+    
+        <section>
+            <div id="canvas-container">
+            </div>
+        </section>
+        <aside>
+            <div class="command-list-container">
+                <h4>Terminal Commands</h4>
+                <ul class="command-list">
+                    <li>help</li>
+                    <li>clear</li>
+                </ul>
+                <h4>xCitoGit Commands</h4>
+                <ul class="command-list">
+                    <li>git log <i>*dev console output*</i></li>
+                    <li>git branch</li>
+                    <li>git branch (branchname)</li>
+                    <li>git checkout (branchname)</li>
+                    <li>git commit</li>
+                    <li>git commit -m "Your Message"</li>
+                    <li>git rebase (branchname)</li>
+                    <li>git merge (branchname)</li>
+                </ul>
+            </div>
+        </aside>
 
-        <div class="command-list-container">
-            <h4>Terminal Commands</h4>
-            <ul class="command-list">
-                <li>help</li>
-                <li>clear</li>
-            </ul>
-            <h4>xCitoGit Commands</h4>
-            <ul class="command-list">
-                <li>git log <i>*dev console output*</i></li>
-                <li>git branch</li>
-                <li>git branch (branchname)</li>
-                <li>git checkout (branchname)</li>
-                <li>git commit</li>
-                <li>git commit -m "Your Message"</li>
-                <li>git rebase (branchname)</li>
-                <li>git merge (branchname)</li>
-            </ul>
-        </div>
+        
         <script src="src/observe/observableCommit.js"></script>
         <script src="src/observe/observableBranch.js"></script>
         <script src="src/drawings/link.js"></script>

@@ -243,8 +243,10 @@ class GitCommandProcessor {
          }
 
         names.forEach( (branchName, i) => {
+            let branchToDelete = this.getBranchByName(branchName);
             this.branches = this.branches.filter( b => b.name !== branchName);
             resp += ` '${branchName}' branch deleted ${i === names.length - 1 ? '' : '\n'}`;
+            observableBranches.setState(branchToDelete, "DELETE");
         });
 
         return resp;
@@ -586,6 +588,10 @@ class GitCommandProcessor {
         while (cur2.next !== null) {
             cur2 = cur2.next;
         }
+
+        // Reset number of commits
+        targetBranch.numCommits = 0;
+
         sourceBranch.curCommit = cur2;
         observableBranches.setState(null, 'UPDATE');
     }

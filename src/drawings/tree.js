@@ -31,7 +31,14 @@ class DrawTree {
         if (branchState.type === 'NEW') {
             this.branches.push(branchState.branch);
         } else if (branchState.type === 'DELETE') {
-            this.branches = this.branches.filter( b => b.name !== branchState.branch.name);
+            let branchToDelete = branchState.branch;
+            this.branches = this.branches.filter( b => b.name !== branchToDelete.name);
+
+            let shouldFreeUpRow = !this.branches.some( b => b.curCommit.id === branchToDelete.curCommit.id); 
+            if(shouldFreeUpRow) {
+                let drawCommit = this.refToDrawCommitMap.get(branchToDelete.curCommit);
+                this.freeRowY( this.calcRowFromY(drawCommit.y) );
+            }
         } else if (branchState.type === 'HEAD') {
             this.head = branchState.branch;
         } else if (branchState.type === 'UPDATE') {
@@ -117,16 +124,25 @@ class DrawTree {
             this.availableRows['NEG'].push( row - 1 );
         if (this.availableRows['POS'].length === 0) 
             this.availableRows['POS'].push( row + 1 );
-    
+        
+        console.log(row);
+        console.log(this.availableRows);
         return row;
     }
 
     calcRowFromY(yValue) {
-        return this.y - yValue;
+        return (yValue - this.y) / this.COMMIT_HEIGHT_DIST;
     }
     freeRowY( row ) {
-        this.availableRows.push( row );
-        this.availableRows.sort( (a,b) => a - b);
+        console.log(row);
+        console.log(this.availableRows);
+        if(row < 0) {
+            this.availableRows['NEG'].push( row );
+            this.availableRows['NEG'].sort( (a,b) => a - b);
+        } else {
+            this.availableRows['POS'].push( row );
+            this.availableRows['POS'].sort( (a,b) => a - b);
+        }
     }
 
     linkTwoCommits(drawCommit1, drawCommit2) {
