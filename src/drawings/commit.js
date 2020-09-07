@@ -5,7 +5,7 @@ class DrawCommit {
     constructor(x, y, commit) {
         this.DIAMETER = commit.prev === null ? 20 : 60;
         this.RADIUS = this.DIAMETER / 2;
-        this.LERP_SPEED = 0.009;
+        this.LERP_SPEED = 0.03;
         this.commitRef = commit;
         this.x = x;
         this.y = y;
