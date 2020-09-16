@@ -7,8 +7,8 @@ class DrawTree {
         this.y = baseY;
         this.refToDrawCommitMap = new Map();
         this.commitLinkSet = new Set();
-        this.COMMIT_HEIGHT_DIST = 100;
-        this.COMMIT_WIDTH_DIST = 100;
+        this.COMMIT_HEIGHT_DIST = 250;
+        this.COMMIT_WIDTH_DIST = 250;
         this.listOfColor = ['#f7dd94','#ccf794','#94f7b5','#94eff7','#94a0f7','#cf94f7','#f794e8','#f79494'];
 
         this.availableRows = {
@@ -181,8 +181,8 @@ class DrawTree {
             }
             
 
-            redrawHelper(curCommit.next);
             curCommit.branchCommits.forEach( c => redrawHelper(c));
+            redrawHelper(curCommit.next);
         };
 
         this.commitLinkSet.clear();
@@ -200,29 +200,34 @@ class DrawTree {
         this.refToDrawCommitMap.forEach( (drawCommit, commitRef) => {
             drawCommit.draw();
             let offset = 0;
-            this.branches.forEach( b => {
-                if (b.curCommit === commitRef) { 
-                    this.drawArrow(drawCommit.x + offset, drawCommit.y + offset - drawCommit.RADIUS, b === this.head); 
-                    offset += 2;
-                }
-            });
+            let branchNames = this.branches.filter( b => b.curCommit.id === commitRef.id ).map( b => b.name );
+            if (branchNames.length !== 0) {
+                this.drawArrow(drawCommit.x + offset, drawCommit.y + offset - drawCommit.RADIUS, commitRef.id === this.head.curCommit.id, branchNames); 
+            }
+            offset += 2;
             
         });
     }
     
-    drawArrow(x, y, isMain) {
+    drawArrow(x, y, isMain, names) {
         push();
         (isMain) ? fill(0) : fill(255);
         beginShape();
         vertex(x, y);  
         vertex(x+10, y-15);
         vertex(x+5, y-15);
-        vertex(x+5, y-40);
-        vertex(x-5, y-40);
+        vertex(x+5, y-20);
+        vertex(x-5, y-20);
         vertex(x-5, y-15);
         vertex(x-10, y-15);
         vertex(x, y);
         endShape();
+        push();
+        fill(0).textSize(20);
+        names.forEach( (name, i) => {
+            text(name, x-5, y-25 * (i+1));
+        });
+        pop();
         pop();
     }
 }

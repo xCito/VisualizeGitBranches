@@ -8,19 +8,22 @@
     position: absolute;
     top: 0px;
     right: 0px;
-
-
+    z-index: -1;
 }
 
 .side-panel {
     position: absolute;
     top: 0px;
     left: 0px;
+    
+    height: 100vh;
+    width: 400px;  
 
-    height: 100%;
-    width: 300px;  
-    /* border: 2px solid green; */
+    overflow: hidden;
+    transition: width 0.2s;
+    background-color: rgb(13, 20, 20);
 }
+
 
 .command-list-container {
     /* border: 1px solid red; */
@@ -39,13 +42,31 @@
 }
 
 .hide-panel-btn {
-    position: absolute;
     right: 0px;
+    
+    color: white;
+}
+.open-panel-btn {
+    left: 0px;
+    
+    color: black;
+}
+
+button[class$="panel-btn"]:focus {
+    outline: none;
+}
+
+button[class$="panel-btn"] {
+    position: absolute;
+    top: 0px;
     height: 50px;
     width: 50px;
+    background-color: transparent;
+    border: transparent;
+    font-size: 2em;
 }
 
 body {
-    background-color: rgb(27, 61, 61);
+    background-color: rgb(13, 20, 20);
     overflow: hidden;
 }

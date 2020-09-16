@@ -18,6 +18,7 @@ class Terminal {
         this.shiftY = 0;
 
         this.setUpEventListeners();
+        this.CHAINED_COMMAND_DELAY = 500;
     }
 
     setUpEventListeners() {
@@ -50,16 +51,21 @@ class Terminal {
             let cmd = this.#commandLineElem.value;
             let output;
             
-            if(cmd == "") {
-                this._addToFeed("");
-                return;
-            }
-
-            output = this.processCommand(cmd);
-            if(output != null) {
-                this._addToFeed(output);
-            }
-            this.historyIndex = 0;
+            this._addToFeed(cmd);
+            this.cmdToListOfCommands(cmd).forEach( async (command, i) => {
+                await setTimeout(() => {
+                    if(command == "") {
+                        this._addToFeed("");
+                        return;
+                    }
+                    output = this.processCommand(command);
+                    if(output != null) {
+                        this._addToFeed(output, false);
+                    }
+                    this.historyIndex = 0;
+                }, this.CHAINED_COMMAND_DELAY * i);
+            });
+            this.addToCommandHistory(cmd);
         } else if ('ArrowUp' === e.key) {
             this.navigateCommandHistory(1);
         } else if ('ArrowDown' === e.key) {
@@ -108,8 +114,11 @@ class Terminal {
                 msg = this.gitProcessor.process(cmd);
                 break;
         }
-        this.addToCommandHistory(cmd);
         return msg;
+    }
+
+    cmdToListOfCommands( cmd ) {
+        return cmd.split(/\s?&&\s?/g);
     }
 
     clearTerminal() {
@@ -140,10 +149,10 @@ class Terminal {
         this.#commandLineElem.focus();   
     }
 
-    _addToFeed( text ) {
+    _addToFeed( text, addPrefix = true ) {
         let span = document.createElement('span');
         span.classList.add('terminal-feed-entry');
-        span.innerText = this.prefix + text;
+        span.innerText = addPrefix ? this.prefix + text : text;
         this.#commandLineElem.value = '';
 
         this.#terminalFeedElem.appendChild(span);

@@ -3,16 +3,16 @@
 class DrawCommit {
 
     constructor(x, y, commit) {
-        this.DIAMETER = commit.prev === null ? 20 : 60;
+        this.DIAMETER = commit.prev === null ? 20 : 140;
         this.RADIUS = this.DIAMETER / 2;
-        this.LERP_SPEED = 0.03;
+        this.LERP_SPEED = 0.06;
         this.commitRef = commit;
         this.x = x;
         this.y = y;
         this.destinationX = this.x;
         this.destinationY = this.y;
         this.isHovered = false;
-        this.color = '#FFF';
+        this.color = '#0f0';
     }
     onHover() {
         let distance = dist(mouseX - panX, mouseY - panY, this.x, this.y);
@@ -67,10 +67,8 @@ class DrawCommit {
         // commit id
         push();
         if(this.commitRef.prev !== null) {
-            fill('#123');
-            strokeWeight(.5);
-            stroke('black');
-            text(this.commitRef.id, this.x-24, this.y+5);
+            fill('#000').textSize(25);
+            text(this.commitRef.id, this.x-50, this.y+5);
         }
         pop();
     }

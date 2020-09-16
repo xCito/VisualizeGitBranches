@@ -11,7 +11,7 @@
 
         <div id="canvas-container">
         </div>
-
+        
 
         <div id="terminal" class="terminal">
             <div id="terminal-head" class="terminal-header">Welcome to Learn Git Visually</div>
@@ -24,8 +24,10 @@
         </div>
 
 
+        <button class="open-panel-btn" onclick="openSidePanel()">help</button>
         <div class="side-panel">
-            <button class="hide-panel-btn">Hide</button>
+            <button class="hide-panel-btn" onclick="closeSidePanel()">x</button>
+
             <div class="command-list-container">
                 <h4>Terminal Commands</h4>
                 <ul class="command-list">
@@ -35,11 +37,11 @@
                 <h4>xCitoGit Commands</h4>
                 <ul class="command-list">
                     <li>git branch</li>
+                    <li>git branch --list</li>
                     <li>git branch (branchname)</li>
                     <li>git branch -d (branchname)</li>
                     <li>git branch -m (branchname) (newbranchname)</li>
                     <li>git branch -c (branchname) (newbranchname)</li>
-                    <li>git branch --list (branchname)</li>
                     <li>git switch (branchname)</li>
                     <li>git switch -c (branchname)</li>
                     <li>git checkout (branchname)</li>

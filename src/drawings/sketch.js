@@ -6,20 +6,18 @@ let panY = 0;
 let tree;
 
 function setup() {
-    canvasWidth = windowWidth-300;
-    canvasHeight = windowHeight-300;
     
-    let canvas = createCanvas(canvasWidth , canvasHeight);
+    let canvas = createCanvas(windowWidth , windowHeight);
     canvas.parent('canvas-container');
     canvas.id('theCanvas');
     let root = terminal.gitProcessor.rootCommit;
     let master = terminal.gitProcessor.branches[0];
-    tree = new DrawTree(root, master, 200, 400);
+    tree = new DrawTree(root, master, windowWidth/3, windowHeight/2);
 
 }
   
 function draw() {
-    background('rgba(100,100,100, 0.9)');
+    background('rgba(255,255,255, 1)');
     scale(zoom);
     translate(panX, panY);
     tree.draw();
@@ -42,7 +40,8 @@ function mouseDragged(event) {
 }
 
 function windowResized() {
-    resizeCanvas(canvasWidth , canvasHeight);
+    console.log('resize');
+    resizeCanvas(windowWidth , windowHeight);
 }
 function drawCrossAtOrigin() {
     line(0,0, 100, 0);
