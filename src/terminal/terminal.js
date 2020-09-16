@@ -43,7 +43,7 @@ class Terminal {
         let terminalWidth = this.#terminalElem.getBoundingClientRect().width;
         let terminalHeight = this.#terminalElem.getBoundingClientRect().height;
         this.#terminalElem.style.left = (window.innerWidth/2) - (terminalWidth/2) + 'px';
-        this.#terminalElem.style.top = (window.innerHeight) - (terminalHeight + 30) + 'px';
+        this.#terminalElem.style.top = (window.innerHeight) - (terminalHeight + 70) + 'px';
     }
 
     _handleKeyPress(e) {
