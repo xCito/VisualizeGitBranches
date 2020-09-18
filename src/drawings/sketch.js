@@ -1,8 +1,10 @@
-let canvasWidth;
-let canvasHeight;
-let zoom = 1.0;
-let panX = 0;
-let panY = 0;
+
+let cnvProps = {
+    zoom: 1.0,
+    panX: 0,
+    panY: 0
+};
+
 let tree;
 
 function setup() {
@@ -18,23 +20,23 @@ function setup() {
   
 function draw() {
     background('rgba(255,255,255, 1)');
-    scale(zoom);
-    translate(panX, panY);
+    scale(cnvProps.zoom);
+    translate(cnvProps.panX, cnvProps.panY);
     tree.draw();
     drawCrossAtOrigin();
 }
 
 function mouseWheel(event) {
     if (event.target.id === 'theCanvas') {
-        zoom += 0.0005 * event.delta;
+        cnvProps.zoom += 0.0005 * event.delta;
         return false;
     }
 }
 
 function mouseDragged(event) {
     if (event.target.id === 'theCanvas' && !terminal.isHeld) {
-        panX += event.movementX;
-        panY += event.movementY;
+        cnvProps.panX += event.movementX;
+        cnvProps.panY += event.movementY;
         return false;
     }
 }
