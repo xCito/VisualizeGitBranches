@@ -18,7 +18,7 @@ class Terminal {
         this.shiftY = 0;
 
         this.setUpEventListeners();
-        this.CHAINED_COMMAND_DELAY = 500;
+        this.CHAINED_COMMAND_DELAY = 1000;
     }
 
     setUpEventListeners() {

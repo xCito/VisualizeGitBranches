@@ -24,12 +24,23 @@ class Link {
         return [this.dCommitRef2.x, this.dCommitRef2.y];
     }
     
+    isMergeLink() {
+        return (this.dCommitRef1.commitRef.mergedTo === this.dCommitRef2.commitRef)
+                || 
+                (this.dCommitRef2.commitRef.mergedTo === this.dCommitRef1.commitRef);
+    }
+
     draw() {
         let [x1, y1] = this.getCommitOneCoordinates();
         let [x2, y2] = this.getCommitTwoCoordinates();
 
         push();
         strokeWeight(4);
+        if (this.isMergeLink()) {
+            stroke('red');
+        } else {
+            stroke('black');
+        }
         line(x1, y1, x2, y2);
         pop();
     }

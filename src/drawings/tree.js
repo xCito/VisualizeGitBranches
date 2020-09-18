@@ -161,6 +161,7 @@ class DrawTree {
             if(this.refToDrawCommitMap.has(curCommit)) {
                 drawCommit = this.refToDrawCommitMap.get(curCommit);
             } else {
+                console.warn('this commit was not in DrawCommit Map\nMake sure to notify commit observable of all new commits\n', curCommit);
                 let [prevX, prevY] = this.getPositionOfCommit(curCommit.prev);
                 previousY = prevY;
                 drawCommit = new DrawCommit(prevX, prevY, curCommit);
@@ -180,7 +181,6 @@ class DrawTree {
                 }
             }
             
-
             curCommit.branchCommits.forEach( c => redrawHelper(c));
             redrawHelper(curCommit.next);
         };
@@ -191,6 +191,14 @@ class DrawTree {
             NEG: [-1 ]
         };
         redrawHelper(this.root);
+
+        // After all commits have been draw, link merged commits
+        this.refToDrawCommitMap.forEach( (dCommit,commitRef, map) => {
+            if(commitRef.mergedTo) {
+                this.linkTwoCommits(dCommit, map.get(commitRef.mergedTo));
+            }
+        }); 
+        
     }
 
     draw() {

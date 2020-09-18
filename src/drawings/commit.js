@@ -42,25 +42,21 @@ class DrawCommit {
     draw() {
         this.move();
         
-        if(this.commitRef.isMergeCommit) {
-            strokeWeight(4);
-            stroke('green');
-        } else {
-            strokeWeight(.5);
-            stroke('black');
-        }
-        
         // commit message pop up
         this.onHover();
         if(this.isHovered) {
-            rect(this.x, this.y-115, 200, 100);
-            text(this.commitRef.message, this.x+10, this.y-95);
+            rect(this.x-200, this.y-this.RADIUS-100, 200, 100);
+            text(this.commitRef.message, this.x-200+10, this.y-this.RADIUS-80);
         }
         
         // commit circle
         push();
         fill(this.color);
-        strokeWeight(2);
+        if (this.commitRef.isMergeCommit) {
+            strokeWeight(10);
+        } else {
+            strokeWeight(2);
+        }
         circle(this.x, this.y, this.DIAMETER);
         pop();
         
