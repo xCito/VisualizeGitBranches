@@ -61,4 +61,9 @@
     border: none;
 }
 
-
+.terminal span.warn {
+    color: yellow;
+}
+.terminal span.error {
+    color: red;
+}

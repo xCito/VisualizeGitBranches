@@ -21,7 +21,9 @@ class DrawTree {
     }
     
     setup() {
-        this.refToDrawCommitMap.set(this.root, new DrawCommit(this.x, this.y, this.root));
+        let rootDCommit = new DrawCommit(this.x, this.y, this.root);
+        rootDCommit.color = this.getNextColor();
+        this.refToDrawCommitMap.set(this.root, rootDCommit);
         observableCommits.addObserverCallback(this.commitChangeCallback);
         observableBranches.addObserverCallback(this.branchChangeCallback);
     }
@@ -69,8 +71,7 @@ class DrawTree {
 
         // sets color for commit
         if (moveY !== prevY) {
-            newDrawCommit.color = this.listOfColor.shift();
-            this.listOfColor.push(newDrawCommit.color);
+            newDrawCommit.color = this.getNextColor();
         } else {
             newDrawCommit.color = prevDCommit.color;
         }
@@ -79,6 +80,12 @@ class DrawTree {
         this.linkTwoCommits(prevDCommit, newDrawCommit);
     }
 
+    getNextColor() {
+        let color = this.listOfColor.shift(); 
+        this.listOfColor.push(color);
+        return color;
+    }
+    
     isBranchOffCommit(commitRef) {
         if (commitRef.prev == null) 
             return false;

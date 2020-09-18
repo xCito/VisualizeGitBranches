@@ -12,7 +12,7 @@ class DrawCommit {
         this.destinationX = this.x;
         this.destinationY = this.y;
         this.isHovered = false;
-        this.color = '#0f0';
+        this.color = '#a0eba0';
     }
     onHover() {
         let distance = dist(mouseX - panX, mouseY - panY, this.x, this.y);

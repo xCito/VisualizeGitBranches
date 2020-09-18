@@ -7,16 +7,17 @@ class GitCommandProcessor {
         this.head = master.curCommit;
         this.rootCommit = root;
         observableBranches.setState(master, 'NEW');
+
+        this.PREFIX = `  `;
+        this.POSTFIX = `\n`;
     }
 
     process(inputCmd) {
         let cmd = this.processCommand(inputCmd);
-        let prefix = ``;
-        let postfix = '\n\n';
         let response;
 
         if (this.startsWithGit(cmd.original)) {
-            response = `This is custom CitoGit\n\tversion - 1.0.0`;
+            response = `This is custom CitoGit\n version - 1.0.0`;
 
             switch (cmd.command) {
                 case undefined: // should not get here
@@ -45,14 +46,14 @@ class GitCommandProcessor {
                     response = `${this.rebaseCommand(cmd.flags, cmd.args)}`;
                     break;
                 default:
-                    response = ` Unknown git command '${cmd.command}'`;
+                    response = `Unknown git command '${cmd.command}'`;
                     break;
             }
         } else {
-            response = ` Error: Invalid Input\n\tI dont know what '${cmd.original}' is. :(`;
+            response = this.errorMsg(`Error: Uknown command '${cmd.original}' :(`);
         }
 
-        return prefix + response + postfix;
+        return this.PREFIX + response + this.POSTFIX;
     }
 
     startsWithGit(cmd) {
@@ -145,14 +146,14 @@ class GitCommandProcessor {
             }
         } else {
             for(let flag of flags) {
-                let warnMsg = `\t${flag} and ${flags.filter(f => f != flag).join()}` +  
-                                ' dont work together\n\tor the other flag(s) are not available';
+                let warnMsg = `${flag} and ${flags.filter(f => f != flag).join()} ` +  
+                                'dont work together or the other flag(s) are not available';
                 switch(flag) {
                     case '-m':
                         if (flags.length > 1) 
                             resp = warnMsg;
                         else if (args.length > 2 || args.length < 2) 
-                            resp = ` 2 arguments are required`;
+                            resp = `2 arguments are required`;
                         else { 
                             resp = this.moveBranch(args);
                         }
@@ -161,7 +162,7 @@ class GitCommandProcessor {
                         if (flags.length > 1) 
                             resp = warnMsg;
                         else if (args.length > 2 || args.length < 2) 
-                            resp = ` 2 branches are required`;
+                            resp = `2 branches are required`;
                         else { 
                             resp = this.copyBranch(args);
                         }
@@ -170,7 +171,7 @@ class GitCommandProcessor {
                         if (flags.length > 1) 
                             resp = warnMsg;
                         else if (args.length < 1) 
-                            resp = ` Atleast 1 branch is required`;
+                            resp = `Atleast 1 branch is required`;
                         else 
                             resp = this.deleteBranches(args);
                         break;
@@ -181,7 +182,7 @@ class GitCommandProcessor {
                             resp = `${this.getListOfAllBranches()}`;
                         break;
                     default:
-                        resp = ` ${flag} not available`;
+                        resp = `${flag} not available`;
                         break;
                 }
             }
@@ -196,8 +197,8 @@ class GitCommandProcessor {
     getListOfAllBranches() {
         return this.branches
             .map( (b) => this.curBranch.name !== b.name ? b.name : `* ${b.name}`)
-            .map( (bName,i) => `  ${i+1}) ${bName}`)
-            .join('\n');
+            .map( (bName,i) => `${i+1}) ${bName}`)
+            .join(`\n${this.PREFIX}`) + '\n';
     }
 
     /**
@@ -206,9 +207,10 @@ class GitCommandProcessor {
      */
     createBranches(names) {
         let resp = '';
+        names = [...new Set(names)];
         for(let branchName of names) {
             if ( this.doesBranchExist(branchName) ) {
-                resp = ` Branch with name '${branchName}' already exists\n no new branch created.`;
+                resp = this.warnMsg(`Branch with name '${branchName}' already exists\n${this.PREFIX}no new branch created.`);
                 return resp;
             }
         }
@@ -216,7 +218,7 @@ class GitCommandProcessor {
         names.forEach( (branchName, i) => {
             let branch = new Branch(branchName, this.curBranch.curCommit);
             this.branches.push(branch);
-            resp += ` Created new branch '${branchName}' ${i === names.length-1 ? '' : '\n'}`;
+            resp += `Created new branch '${branchName}' ${i === names.length-1 ? '' : '\n' + this.PREFIX}`;
             observableBranches.setState(branch, 'NEW');
         });
 
@@ -231,11 +233,11 @@ class GitCommandProcessor {
         let resp = '';
         for(let branchName of names) {
             if ( !this.doesBranchExist(branchName) ) {
-                resp = ` '${branchName}' doesnt exist\n no branch deleted.`;
+                resp = this.warnMsg(`'${branchName}' doesnt exist\n no branch deleted.`);
                 return resp;
             }
             if (this.curBranch.name === branchName) {
-                resp = ` cannot delete '${branchName}'\n currently being referenced (youre on that branch)`;
+                resp = this.warnMsg(`Cannot delete '${branchName}'\n currently being referenced (youre on that branch)`);
                 return resp;
             }
          }
@@ -243,7 +245,7 @@ class GitCommandProcessor {
         names.forEach( (branchName, i) => {
             let branchToDelete = this.getBranchByName(branchName);
             this.branches = this.branches.filter( b => b.name !== branchName);
-            resp += ` '${branchName}' branch deleted ${i === names.length - 1 ? '' : '\n'}`;
+            resp += `'${branchName}' branch deleted ${i === names.length - 1 ? '' : '\n'}`;
             observableBranches.setState(branchToDelete, "DELETE");
         });
 
@@ -259,13 +261,13 @@ class GitCommandProcessor {
         let copy = args[1];
         let resp;
         if(!this.doesBranchExist(target))
-            resp = ` ${target} branch does not exist\n\tcopy failed`;
+            resp = this.errorMsg(`${target} branch does not exist\n\tcopy failed`);
         else if (this.doesBranchExist(copy)) {
-            resp = ` branch with name '${copy}' already exists\n\tcopy failed`;     
+            resp = this.errorMsg(`branch with name '${copy}' already exists\n\tcopy failed`);     
         } else {
             let branchCopy = Branch.copyBranch( this.getBranchByName(target), copy );
             this.branches.push(branchCopy);
-            resp = ` branch copied!`;
+            resp = `branch copied!`;
         }
         return resp;
     }
@@ -279,12 +281,12 @@ class GitCommandProcessor {
         let move = args[1];
         let resp;
         if(!this.doesBranchExist(target))
-            resp = ` ${target} branch does not exist\n\tmove failed`;
+            resp = this.errorMsg(`${target} branch does not exist\n\tmove failed`);
         else if (this.doesBranchExist(move)) {
-            resp = ` branch with name '${move}' already exists\n\tcopy failed`;     
-        } else {
+            resp = this.errorMsg(`branch with name '${move}' already exists\n\tcopy failed`);
+       } else {
             this.getBranchByName(target).name = move;
-            resp = ` branch moved/renamed!`;
+            resp = `branch moved/renamed!`;
         }
         return resp;
     }
@@ -300,9 +302,9 @@ class GitCommandProcessor {
 
         if(flags.length === 0) {
             if(args.length > 1) {
-                resp = ` switch unsuccessful, too many arguments\n\tgit switch <branchName>`;
+                resp = `switch unsuccessful, too many arguments\n\tgit switch <branchName>`;
             } else if (args.length === 0){
-                resp = ` switch unsuccessful, no arguments provided\n\tgit switch <branchName>`;
+                resp = `switch unsuccessful, no arguments provided\n\tgit switch <branchName>`;
             } else 
                 resp = this.switchToDifferentBranch(args[0]);
         } else {
@@ -311,12 +313,12 @@ class GitCommandProcessor {
                     case '-c':
                     case '--create':
                         if (args.length == 0 || args[0] === undefined)
-                            resp = ` no branch name provided, follow this format\n\tgit switch [-c|--create] <branchName>\n\n`;
+                            resp = `no branch name provided, follow this format\n git switch [-c|--create] <branchName>`;
                         else 
-                            resp = `${this.createBranches([args[0]])}\n${this.switchToDifferentBranch(args[0])}\n`;
+                            resp = `${this.createBranches([args[0]])}\n ${this.switchToDifferentBranch(args[0])}`;
                         break;
                     default:
-                        resp = ` ${flag} not available`;
+                        resp = `${flag} not available`;
                         break;
                 }
             }
@@ -331,14 +333,14 @@ class GitCommandProcessor {
     switchToDifferentBranch(branchName) {
         let resp;
         if (!this.doesBranchExist(branchName)) {
-            resp = ` branch switch/change failed, ${branchName} doesnt exist`;
+            resp = this.errorMsg(`branch switch/change failed, '${branchName}' branch doesnt exist`);
         } else {
             if(this.curBranch.name === branchName) {
-                resp = ` already in ${branchName} branch`;
+                resp = `already in ${branchName} branch`;
             } else {
                 this.curBranch = this.getBranchByName(branchName);
                 observableBranches.setState(this.curBranch, 'HEAD');
-                resp = ` switch successful, now in '${branchName}' branch`;
+                resp = `switch successful, now in '${branchName}' branch`;
             }
         }
         return resp;
@@ -353,9 +355,9 @@ class GitCommandProcessor {
         let resp;
         if (flags.length === 0) {
             if(args.length === 0) 
-                resp = ` no branch name provided, follow this format\n\tgit checkout <branchName>`;
+                resp = `no branch name provided, follow this format\n\tgit checkout <branchName>`;
             else if (args.length > 1)
-                resp = ` too many arguments, follow this format\n\tgit checkout <branchName>`;
+                resp = `too many arguments, follow this format\n\tgit checkout <branchName>`;
             else 
                 resp = this.switchToDifferentBranch(args[0]);
         } else {
@@ -368,7 +370,7 @@ class GitCommandProcessor {
                             resp = `too many arguments, follow this format\n\tgit checkout -b <branchName>\n\n`;
                         else {
                             let bName = args[0];
-                            resp = this.createBranches([bName]) + '\n' +
+                            resp = this.createBranches([bName]) + '\n ' +
                                     this.switchToDifferentBranch(bName);
                         }
                         break;
@@ -396,26 +398,26 @@ class GitCommandProcessor {
                 resp = `follow this format:\n\tgit commit -m "Your Message Here"\n\n`;
             } else {
                 this.addCommitToBranch(this.curBranch, `"${this.curBranch.name + this.curBranch.numCommits}"`);
-                resp = ` Commit successful using default message`;
+                resp = `Commit successful using default message`;
             }
         } else {
             for(let flag of flags) {
-                let warnMsg = `\t${flag} and ${flags.filter(f => f != flag).join()}` +  
+                let warnMsg = `${flag} and ${flags.filter(f => f != flag).join()}` +  
                                 ' dont work together\n\tor the other flag(s) are not available';
                 switch(flag) {
                     case '-m':
                         if (flags.some(f => f === '--amend'))
                             break;
                         else if (args.length == 0 || args[0] === undefined)
-                            resp = ` no message provided, follow this format:\n\tgit commit -m "Your Message Here"`;
+                            resp = `no message provided, follow this format:\n\tgit commit -m "Your Message Here"`;
                         else 
                             resp = this.addCommitToBranch(this.curBranch, args[0]);
                         break;
                     case '--amend':
                         if ( !flags.some(f => f === '-m') )
-                            resp = ` missing -m flag, follow this format:\n\tgit commit --amend -m "Your Message Here"`
+                            resp = `missing -m flag, follow this format:\n\tgit commit --amend -m "Your Message Here"`
                         else if (args.length === 0) 
-                            resp = ` no message provided, follow this format:\n\tgit commit -m "Your Message Here"`;
+                            resp = `no message provided, follow this format:\n\tgit commit -m "Your Message Here"`;
                         else     
                             resp = this.amendBranchCommit(this.curBranch, args[0]);
                         break;    
@@ -455,11 +457,11 @@ class GitCommandProcessor {
         let msgPatt = /".*"/g;
         let resp;
         if (msg.search(msgPatt) === -1) {
-            resp = ` Amend unsuccessful, please follow this format\n\tgit commit --amend -m "Your Message Here"`;
+            resp = `Amend unsuccessful, please follow this format\n\tgit commit --amend -m "Your Message Here"`;
         } else {
             let message = msg.replace(/"/g, '');
             branch.curCommit.message = message;
-            resp = ' Amend successful';
+            resp = 'Amend successful';
         }
         return resp;
     }
@@ -474,24 +476,24 @@ class GitCommandProcessor {
 
         if (flags.length === 0) {
             if(args.length === 0) {
-                resp = ' Rebase failed, missing a branch name';
+                resp = this.errorMsg('Rebase failed, missing a branch name');
             } else if (args.length > 1){
-                resp = ' Too many arguments';
+                resp = 'Too many arguments';
             } else if (!this.doesBranchExist(args[0])){
-                resp = ' branch doesnt exist';
+                resp = 'branch doesnt exist';
             } else {
                 let target = this.getBranchByName(args[0]);
                 let commonCommit = this.findCommonAncestor(target, this.curBranch);
                 let stemCommit = this.getCommitBeforeSpecificCommit(target, commonCommit);
 
                 if(target.curCommit.id === commonCommit.id) {
-                    resp = ' already upto date';
+                    resp = 'already upto date';
                 } else if(this.curBranch.curCommit.id === commonCommit.id || commonCommit.isInBranchingCommits(stemCommit)) {
                     this.fastForwardBranch(target, this.curBranch, commonCommit);
-                    resp  = ` fastforwarded ${this.curBranch.name} branch to ${target.name} branch`;
+                    resp  = `fastforwarded ${this.curBranch.name} branch to ${target.name} branch`;
                 } else {
                     this.rebaseBranch(target, this.curBranch, commonCommit);
-                    resp  = ` rebased ${this.curBranch.name} branch onto ${target.name} branch`;
+                    resp  = `rebased ${this.curBranch.name} branch onto ${target.name} branch`;
                 }
             }
         } else {
@@ -570,9 +572,9 @@ class GitCommandProcessor {
         
         if (flags.length === 0) {
             if(args.length === 0) {
-                resp = ` Merge failed, no branch provided`;
+                resp = `Merge failed, no branch provided`;
             } else if (args.length > 1) {
-                resp = ' Too many arguments';
+                resp = 'Too many arguments';
             } else if (!this.doesBranchExist(args[0])) {
                 resp = `${args[0]} branch doesnt exist`;
             } else {
@@ -580,12 +582,12 @@ class GitCommandProcessor {
                 let commonCommit = this.findCommonAncestor(this.curBranch, target);
                 
                 if (commonCommit.id === target.curCommit.id) {
-                    resp = ' Already up to date.';
+                    resp = 'Already up to date.';
                 } else if (commonCommit.id === this.curBranch.curCommit.id) {
                     this.fastForwardBranch(target, this.curBranch, commonCommit);
-                    resp = ` Fast Forwarded ${this.curBranch.name} branch onto ${target.name} branch`;
+                    resp = `Fast Forwarded ${this.curBranch.name} branch onto ${target.name} branch`;
                 } else if ( target.curCommit.mergedTo ) { 
-                    resp = ' Already up to date.';
+                    resp = 'Already up to date.';
                 } else {
                     this.mergeBranch(target, this.curBranch, commonCommit);
                     resp = `Merge successful`;
@@ -717,5 +719,12 @@ class GitCommandProcessor {
         for(var i=0; i<cur.branchCommits.length; i++) {
             this.displayCommits(cur.branchCommits[i]);
         }
+    }
+
+    warnMsg( msg ) {
+        return `<span class="warn">${msg}</span>`;
+    }
+    errorMsg( msg ) {
+        return `<span class="error">${msg}</span>`;
     }
 }

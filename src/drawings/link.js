@@ -38,10 +38,12 @@ class Link {
         strokeWeight(4);
         if (this.isMergeLink()) {
             stroke('red');
+            drawingContext.setLineDash([5,15]);
         } else {
             stroke('black');
         }
         line(x1, y1, x2, y2);
+        drawingContext.setLineDash([]);
         pop();
     }
 }

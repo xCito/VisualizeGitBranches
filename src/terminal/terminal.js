@@ -18,7 +18,7 @@ class Terminal {
         this.shiftY = 0;
 
         this.setUpEventListeners();
-        this.CHAINED_COMMAND_DELAY = 1000;
+        this.CHAINED_COMMAND_DELAY = 500;
     }
 
     setUpEventListeners() {
@@ -152,7 +152,7 @@ class Terminal {
     _addToFeed( text, addPrefix = true ) {
         let span = document.createElement('span');
         span.classList.add('terminal-feed-entry');
-        span.innerText = addPrefix ? this.prefix + text : text;
+        span.innerHTML = addPrefix ? this.prefix + text : text;
         this.#commandLineElem.value = '';
 
         this.#terminalFeedElem.appendChild(span);
