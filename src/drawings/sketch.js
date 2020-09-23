@@ -8,14 +8,12 @@ let cnvProps = {
 let tree;
 
 function setup() {
-    
     let canvas = createCanvas(windowWidth , windowHeight);
     canvas.parent('canvas-container');
     canvas.id('theCanvas');
     let root = terminal.gitProcessor.rootCommit;
     let master = terminal.gitProcessor.branches[0];
     tree = new DrawTree(root, master, windowWidth/3, windowHeight/2);
-
 }
   
 function draw() {
@@ -35,6 +33,7 @@ function mouseWheel(event) {
 
 function mouseDragged(event) {
     if (event.target.id === 'theCanvas' && !terminal.isHeld) {
+        tree.focusDetached = true;
         cnvProps.panX += event.movementX;
         cnvProps.panY += event.movementY;
         return false;

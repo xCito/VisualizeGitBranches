@@ -3,7 +3,7 @@
     box-shadow: 0px 5px 10px 2px black;
 }
 .terminal {
-    position: relative;
+    position: absolute;
     left: 0px;
     top: 0px;
     height: 350px;
@@ -67,3 +67,21 @@
 .terminal span.error {
     color: red;
 }
+
+
+.terminal::not(::focus) {
+    background-color: green;
+}
+
+.unselectable {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+ 
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+    */
+    -ms-user-select: none;
+    user-select: none;
+ }

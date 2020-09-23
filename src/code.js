@@ -11,3 +11,7 @@ function openSidePanel() {
     p.style.width = "400px"
     // p.style.height = "100vh";
 }
+
+setTimeout(() => {
+    closeSidePanel();
+}, 3000);

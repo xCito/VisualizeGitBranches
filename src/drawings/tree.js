@@ -17,6 +17,14 @@ class DrawTree {
         };
         this.lastRowTaken;
         this.head = mainBranch;
+        
+        this.focusDetached = false;
+        this.panDestinationX = cnvProps.panX;
+        this.panDestinationY = cnvProps.panY;
+        this.BORDER_LIMIT_X = windowWidth * 0.2;
+        this.BORDER_LIMIT_Y = windowHeight * 0.25;
+        this.PAN_LERP_SPEED = 0.05;
+        
         this.setup();
     }
     
@@ -43,6 +51,8 @@ class DrawTree {
             }
         } else if (branchState.type === 'HEAD') {
             this.head = branchState.branch;
+            this.focusDetached = false;
+            this.setPanDestination(this.head.curCommit);
         } else if (branchState.type === 'UPDATE') {
             this.updateTree();
         } else {
@@ -78,6 +88,9 @@ class DrawTree {
 
         // get draw commit of prev commit ref.
         this.linkTwoCommits(prevDCommit, newDrawCommit);
+
+        this.focusDetached = false;
+        this.setPanDestination(commitRef);
     }
 
     getNextColor() {
@@ -132,8 +145,6 @@ class DrawTree {
         if (this.availableRows['POS'].length === 0) 
             this.availableRows['POS'].push( row + 1 );
         
-        console.log(row);
-        console.log(this.availableRows);
         return row;
     }
 
@@ -205,7 +216,50 @@ class DrawTree {
                 this.linkTwoCommits(dCommit, map.get(commitRef.mergedTo));
             }
         }); 
+        this.setPanDestination(this.head.curCommit);
         
+    }
+
+    setPanDestination(commit) {
+        let leftLimit = this.BORDER_LIMIT_X; 
+        let rightLimit = windowWidth - this.BORDER_LIMIT_X; 
+        let upperLimit = this.BORDER_LIMIT_Y;
+        let bottomLimit = windowHeight-this.BORDER_LIMIT_Y;
+        let commitX, commitY;
+
+        if (!commit) {
+            return;
+        }
+        let dCommit = this.refToDrawCommitMap.get(commit);
+        commitX = dCommit.destinationX + cnvProps.panX;
+        commitY = dCommit.destinationY + cnvProps.panY;
+        
+        if(commitX > rightLimit) {
+            this.panDestinationX += rightLimit - commitX;
+        } else if (commitX < leftLimit) {
+            this.panDestinationX += leftLimit - commitX;
+        }
+        
+        if(commitY < upperLimit) {
+            this.panDestinationY += (windowHeight/2) - commitY;
+        } else if (commitY > bottomLimit) {
+            this.panDestinationY += (windowHeight/2) - commitY;
+        }
+    }
+
+    updatePanViewToCommit() {
+        if (this.focusDetached) {
+            return;
+        }
+
+        if(cnvProps.panX !== this.panDestinationX) {
+            cnvProps.panX = lerp(cnvProps.panX, this.panDestinationX, this.PAN_LERP_SPEED);
+            cnvProps.panX = abs(cnvProps.panX - this.panDestinationX) < 0.5 ? this.panDestinationX : cnvProps.panX;
+        }
+        if(cnvProps.panY !== this.panDestinationY) {
+            cnvProps.panY = lerp(cnvProps.panY, this.panDestinationY, this.PAN_LERP_SPEED);
+            cnvProps.panY = abs(cnvProps.panY - this.panDestinationY) < 0.5 ? this.panDestinationY : cnvProps.panY;
+        }
     }
 
     draw() {
@@ -220,13 +274,14 @@ class DrawTree {
                 this.drawArrow(drawCommit.x + offset, drawCommit.y + offset - drawCommit.RADIUS, commitRef.id === this.head.curCommit.id, branchNames); 
             }
             offset += 2;
-            
         });
+
+        this.updatePanViewToCommit();
     }
     
-    drawArrow(x, y, isMain, names) {
+    drawArrow(x, y, isHead, names) {
         push();
-        (isMain) ? fill(0) : fill(255);
+        (isHead) ? fill(0) : fill(255);
         beginShape();
         vertex(x, y);  
         vertex(x+10, y-15);

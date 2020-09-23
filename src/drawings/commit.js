@@ -40,13 +40,19 @@ class DrawCommit {
     }
 
     draw() {
+        let msgBoxWidth = 200;
+        let msgBoxHeight = 100;
+
         this.move();
         
         // commit message pop up
         this.onHover();
         if(this.isHovered) {
-            rect(this.x-200, this.y-this.RADIUS-100, 200, 100);
-            text(this.commitRef.message, this.x-200+10, this.y-this.RADIUS-80);
+            push();
+            rect(this.x-msgBoxWidth, this.y - this.RADIUS - msgBoxHeight, msgBoxWidth, msgBoxHeight);
+            textSize(15);
+            text(this.commitRef.message, this.x - msgBoxWidth + 5, this.y - this.RADIUS-msgBoxHeight+5, msgBoxWidth-5, msgBoxHeight-5);
+            pop();
         }
         
         // commit circle

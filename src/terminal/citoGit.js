@@ -45,6 +45,9 @@ class GitCommandProcessor {
                 case 'rebase':
                     response = `${this.rebaseCommand(cmd.flags, cmd.args)}`;
                     break;
+                case 'reset':
+                    response = `${this.resetCommand(cmd.flags, cmd.args)}`;
+                    break;
                 default:
                     response = `Unknown git command '${cmd.command}'`;
                     break;
@@ -267,6 +270,7 @@ class GitCommandProcessor {
         } else {
             let branchCopy = Branch.copyBranch( this.getBranchByName(target), copy );
             this.branches.push(branchCopy);
+            observableBranches.setState(branchCopy, "NEW");
             resp = `branch copied!`;
         }
         return resp;
@@ -618,6 +622,11 @@ class GitCommandProcessor {
         observableBranches.setState(null, 'UPDATE'); 
     }
 
+    // ---------------------------------- RESET ---------------------------------- //
+    resetCommand(flags, args) {
+
+    }
+
     // ---------------------------------- UTILTIY / HELPER ---------------------------------- //
     /**
      * @param {string} branch - a branch name 
@@ -709,7 +718,7 @@ class GitCommandProcessor {
         }
         
         let b = this.branches.filter( b => b.curCommit.id === cur.id ).map(b => b.name).join(', ');
-        if (this.curBranch.curCommit.id === cur.id) {
+        if (this.head.id === cur.id) {
             b += ', HEAD';
         }
         let mergeCommitSym = cur.isMergeCommit ? '(M)' : '';

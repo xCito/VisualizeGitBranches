@@ -11,6 +11,7 @@
     z-index: -1;
 }
 
+
 .side-panel {
     position: absolute;
     top: 0px;
@@ -43,13 +44,23 @@
 
 .hide-panel-btn {
     right: 0px;
-    
+    cursor: pointer;
     color: white;
 }
 .open-panel-btn {
-    left: 0px;
-    
+    left: 10px;
     color: black;
+    text-shadow: none;
+    animation: openSidePanelGlow 1s;
+    animation-delay: 3s;
+    cursor: pointer;
+}
+
+
+@keyframes openSidePanelGlow {
+    0% {text-shadow: none; font-size: 11.2em;}
+    40% {text-shadow: 0px 0px 10px black; font-size: 1.2em;}
+    100% {text-shadow: none; font-size: 2.1em;}
 }
 
 button[class$="panel-btn"]:focus {
