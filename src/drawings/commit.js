@@ -16,7 +16,7 @@ class DrawCommit {
     }
     onHover() {
         let distance = dist(mouseX - cnvProps.panX, mouseY - cnvProps.panY, this.x, this.y);
-        if(distance < this.RADIUS) {
+        if(distance < this.RADIUS*cnvProps.zoom) {
             this.isHovered = true;
         } else {
             this.isHovered = false;
@@ -49,9 +49,9 @@ class DrawCommit {
         this.onHover();
         if(this.isHovered) {
             push();
-            rect(this.x-msgBoxWidth, this.y - this.RADIUS - msgBoxHeight, msgBoxWidth, msgBoxHeight);
+            rect(this.x-msgBoxWidth, this.y - (this.RADIUS*cnvProps.zoom) - msgBoxHeight, msgBoxWidth, msgBoxHeight);
             textSize(15);
-            text(this.commitRef.message, this.x - msgBoxWidth + 5, this.y - this.RADIUS-msgBoxHeight+5, msgBoxWidth-5, msgBoxHeight-5);
+            text(this.commitRef.message, this.x - msgBoxWidth + 5, this.y - (this.RADIUS*cnvProps.zoom)-msgBoxHeight+5, msgBoxWidth-5, msgBoxHeight-5);
             pop();
         }
         
@@ -63,14 +63,19 @@ class DrawCommit {
         } else {
             strokeWeight(2);
         }
-        circle(this.x, this.y, this.DIAMETER);
+        circle(this.x, this.y, this.DIAMETER * cnvProps.zoom);
         pop();
         
         // commit id
         push();
         if(this.commitRef.prev !== null) {
-            fill('#000').textSize(25);
-            text(this.commitRef.id, this.x-50, this.y+5);
+            fill('#000')
+            textAlign(CENTER);
+            let sizeOfText = 25 * cnvProps.zoom;
+            if (sizeOfText > 10) {
+                textSize(sizeOfText);
+                text(this.commitRef.id, this.x, this.y+4);
+            }
         }
         pop();
     }

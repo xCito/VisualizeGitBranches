@@ -116,10 +116,10 @@ class DrawTree {
         let x, y;
         if (this.isBranchOffCommit(commitRef)) {
             let rowNum = this.getNextAvailableRow(commitRef);
-            x = prevX + this.COMMIT_WIDTH_DIST;
-            y = this.y + (rowNum * this.COMMIT_HEIGHT_DIST);
+            x = prevX + this.COMMIT_WIDTH_DIST * cnvProps.zoom;
+            y = this.y + (rowNum * this.COMMIT_HEIGHT_DIST * cnvProps.zoom);
         } else {
-            x = prevX + this.COMMIT_WIDTH_DIST;
+            x = prevX + this.COMMIT_WIDTH_DIST * cnvProps.zoom;
             y = prevY + 0;
         }
 
@@ -149,7 +149,7 @@ class DrawTree {
     }
 
     calcRowFromY(yValue) {
-        return (yValue - this.y) / this.COMMIT_HEIGHT_DIST;
+        return (yValue - this.y) / this.COMMIT_HEIGHT_DIST  * cnvProps.zoom;
     }
     freeRowY( row ) {
         console.log(row);
@@ -271,7 +271,7 @@ class DrawTree {
             let offset = 0;
             let branchNames = this.branches.filter( b => b.curCommit.id === commitRef.id ).map( b => b.name );
             if (branchNames.length !== 0) {
-                this.drawArrow(drawCommit.x + offset, drawCommit.y + offset - drawCommit.RADIUS, commitRef.id === this.head.curCommit.id, branchNames); 
+                this.drawArrow(drawCommit.x + offset, drawCommit.y + offset - drawCommit.RADIUS*cnvProps.zoom, commitRef.id === this.head.curCommit.id, branchNames); 
             }
             offset += 2;
         });

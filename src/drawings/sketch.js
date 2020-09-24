@@ -18,7 +18,7 @@ function setup() {
   
 function draw() {
     background('rgba(255,255,255, 1)');
-    scale(cnvProps.zoom);
+    // scale(cnvProps.zoom);
     translate(cnvProps.panX, cnvProps.panY);
     tree.draw();
     drawCrossAtOrigin();
@@ -26,7 +26,14 @@ function draw() {
 
 function mouseWheel(event) {
     if (event.target.id === 'theCanvas') {
-        cnvProps.zoom += 0.0005 * event.delta;
+        event.delta > 0 ? cnvProps.zoom += 0.1 : cnvProps.zoom -= 0.1;
+        if(cnvProps.zoom < 0.3) {
+            cnvProps.zoom = 0.3;
+        } else if (cnvProps.zoom > 1.7) {
+            cnvProps.zoom = 1.7;
+        } else {
+            tree.updateTree();
+        }
         return false;
     }
 }
