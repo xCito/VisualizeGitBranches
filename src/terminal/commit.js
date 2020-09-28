@@ -40,7 +40,6 @@ class Commit {
             if (c.id !== commit.id) {
                 return true;
             } else {
-                console.log('found!');
                 found = true;
             }
         });

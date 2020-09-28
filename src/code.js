@@ -1,17 +1,23 @@
 
 function closeSidePanel() {
-    console.log('hey')
     let p = document.getElementsByClassName('side-panel')[0];
     p.style.width = "0px";
-    // p.style.height = "0vh";
 }
 function openSidePanel() {
-    console.log('hey')
     let p = document.getElementsByClassName('side-panel')[0];
     p.style.width = "400px"
-    // p.style.height = "100vh";
 }
 
 setTimeout(() => {
     closeSidePanel();
 }, 3000);
+
+
+function zoomSliderChange(event) {
+    let scale = event.target.value / 10;
+    canvasControl.setZoomScaler(scale);
+}
+
+function updateSliderOnUI( value ) {
+    document.getElementById('zoom-slider').value = value * 10;
+}

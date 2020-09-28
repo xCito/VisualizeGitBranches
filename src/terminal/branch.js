@@ -9,12 +9,10 @@ class Branch {
         let c1 = new Commit(msg);
 
         if (this.numCommits === 0 && this.name !== 'master') {
-            console.log('Branch off commit');
             this.curCommit.branchCommits.push(c1);
             c1.prev = this.curCommit;
             this.curCommit = c1;
         } else {
-            console.log('Normal commit line');
             this.curCommit.next = c1;
             c1.prev = this.curCommit;
             this.curCommit = c1;

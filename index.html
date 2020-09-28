@@ -57,6 +57,11 @@
 
         </div>
 
+        <div class="zoom-controls">
+            <label>Scale</label> 
+            <input id="zoom-slider" type="range" min="3" max="13" step="1" oninput="zoomSliderChange(event)"/>
+        </div>
+        
         <footer>
             <div class="legend-container">
                 <img src="./src/resources/headArrow.png" />
@@ -68,6 +73,7 @@
             </div>
         </footer>
 
+        <script src="src/drawings/canvasControls.js"></script>
         <script src="src/observe/observableCommit.js"></script>
         <script src="src/observe/observableBranch.js"></script>
         <script src="src/drawings/link.js"></script>

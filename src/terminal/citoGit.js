@@ -526,7 +526,6 @@ class GitCommandProcessor {
             cur = cur.prev; 
         }
         commitA = cur;
-        console.log(commitA);
 
         // Remove branchingCommit from list of branchCommits
         sourceBranch.curCommit.removeBranchingCommit( commitA );

@@ -56,6 +56,39 @@
     cursor: pointer;
 }
 
+.zoom-controls {
+    position: absolute;
+    top: 0px;
+    right: 30px;
+    text-align: center;
+}
+
+.zoom-controls input {
+    width: 200px;
+    height: 10px;
+    display: block;
+    background: #721313;
+    -webkit-appearance: none;
+    outline: none;
+    margin-top: 18px;
+    border-radius: 10px;
+}
+.zoom-controls input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #ebebeb;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid black;
+  }
+
+.zoom-controls label{
+    position: relative;
+    top: 10px;
+    font-size: 1.1em;
+}
 
 @keyframes openSidePanelGlow {
     0% {text-shadow: none; font-size: 11.2em;}
@@ -80,6 +113,7 @@ button[class$="panel-btn"] {
 body {
     background-color: rgb(13, 20, 20);
     overflow: hidden;
+    font-family: 'Ubuntu Mono', monospace;
 }
 
 footer {

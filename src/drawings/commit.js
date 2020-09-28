@@ -12,11 +12,13 @@ class DrawCommit {
         this.destinationX = this.x;
         this.destinationY = this.y;
         this.isHovered = false;
+        this.MSG_BOX_WIDTH = 200;
+        this.MSG_BOX_HEIGHT = 100;
         this.color = '#a0eba0';
     }
     onHover() {
-        let distance = dist(mouseX - cnvProps.panX, mouseY - cnvProps.panY, this.x, this.y);
-        if(distance < this.RADIUS*cnvProps.zoom) {
+        let distance = dist(mouseX - canvasControl.panX, mouseY - canvasControl.panY, this.x, this.y);
+        if(distance < this.RADIUS*canvasControl.zoom) {
             this.isHovered = true;
         } else {
             this.isHovered = false;
@@ -40,20 +42,10 @@ class DrawCommit {
     }
 
     draw() {
-        let msgBoxWidth = 200;
-        let msgBoxHeight = 100;
-
         this.move();
         
         // commit message pop up
         this.onHover();
-        if(this.isHovered) {
-            push();
-            rect(this.x-msgBoxWidth, this.y - (this.RADIUS*cnvProps.zoom) - msgBoxHeight, msgBoxWidth, msgBoxHeight);
-            textSize(15);
-            text(this.commitRef.message, this.x - msgBoxWidth + 5, this.y - (this.RADIUS*cnvProps.zoom)-msgBoxHeight+5, msgBoxWidth-5, msgBoxHeight-5);
-            pop();
-        }
         
         // commit circle
         push();
@@ -63,7 +55,7 @@ class DrawCommit {
         } else {
             strokeWeight(2);
         }
-        circle(this.x, this.y, this.DIAMETER * cnvProps.zoom);
+        circle(this.x, this.y, this.DIAMETER * canvasControl.zoom);
         pop();
         
         // commit id
@@ -71,7 +63,7 @@ class DrawCommit {
         if(this.commitRef.prev !== null) {
             fill('#000')
             textAlign(CENTER);
-            let sizeOfText = 25 * cnvProps.zoom;
+            let sizeOfText = 25 * canvasControl.zoom;
             if (sizeOfText > 10) {
                 textSize(sizeOfText);
                 text(this.commitRef.id, this.x, this.y+4);
