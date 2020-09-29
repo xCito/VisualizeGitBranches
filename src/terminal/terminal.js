@@ -33,12 +33,13 @@ class Terminal {
             this.shiftX = e.pageX - this.#terminalHeader.getBoundingClientRect().left+ 10; 
             this.shiftY = e.pageY - this.#terminalHeader.getBoundingClientRect().top + 10; 
         });
+        
         this.#terminalHeader.addEventListener('mouseup', () => this.isHeld = false);
         this.#terminalElem.style.left = '0px';
         this.#terminalElem.style.top = '0px';
         this.center();
     }
-
+    
     center() {
         let terminalWidth = this.#terminalElem.getBoundingClientRect().width;
         let terminalHeight = this.#terminalElem.getBoundingClientRect().height;
@@ -72,20 +73,20 @@ class Terminal {
             this.navigateCommandHistory(-1);
         }
     }
-
+    
     _handleMouseDrag(e) {
         e.preventDefault();
         this.#terminalElem.style.left = e.clientX - this.shiftX + 'px';
         this.#terminalElem.style.top = e.clientY - this.shiftY + 'px';
     }
-
+    
     addToCommandHistory(cmd) {
         this.commandHistory.splice(1,0,cmd);
         if(this.commandHistory.length > 15) {
             this.commandHistory.pop();
         }
     }
-
+    
     navigateCommandHistory(dir) {
         if(this.commandHistory.length === 0) {
             return;

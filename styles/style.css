@@ -114,6 +114,7 @@ body {
     background-color: rgb(13, 20, 20);
     overflow: hidden;
     font-family: 'Ubuntu Mono', monospace;
+    touch-action: none;
 }
 
 footer {

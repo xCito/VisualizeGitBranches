@@ -13,8 +13,8 @@ function setup() {
 function draw() {
     background('rgba(255,255,255, 1)');
     translate(canvasControl.panX, canvasControl.panY);
+    drawGrid();
     tree.draw();
-    drawCrossAtOrigin();
 }
 
 function mouseWheel(event) {
@@ -26,6 +26,15 @@ function mouseWheel(event) {
     }
 }
 
+function touchMoved(event) {
+
+    if (event.target.id === 'theCanvas' && !terminal.isHeld) {
+        tree.focusDetached = true;
+        canvasControl.updatePanCoordinates(mouseX-pmouseX, mouseY-pmouseY);
+    
+        return false;
+    } 
+}
 function mouseDragged(event) {
     if (event.target.id === 'theCanvas' && !terminal.isHeld) {
         tree.focusDetached = true;
@@ -38,9 +47,24 @@ function mouseDragged(event) {
 function windowResized() {
     resizeCanvas(windowWidth , windowHeight);
 }
-function drawCrossAtOrigin() {
-    line(0,0, 100, 0);
-    line(0,0, 0, 100);
-    line(0,0, -100, 0);
-    line(0,0, 0, -100);
+function drawGrid() {
+    push();
+    let spacedApart = canvasControl.zoom * 120;
+    stroke(230);
+    // Vertical lines
+    for(let i = -round(windowWidth * 3); i <= round(windowWidth * 3); i+=spacedApart) {
+        let x = i;
+        let y1 = -windowHeight * 3;
+        let y2 = windowHeight * 3;
+        line(x, y1, x, y2);
+    }
+    // Horizontal lines
+    for(let i = -round(windowHeight * 3); i <= round(windowHeight * 3); i+=spacedApart) {
+        let y = i;
+        let x1 = -windowWidth * 3;
+        let x2 = windowWidth * 3;
+        line(x1, y, x2, y);
+    }
+
+    pop();
 }
