@@ -5,7 +5,7 @@ class DrawCommit {
     constructor(x, y, commit) {
         this.DIAMETER = commit.prev === null ? 20 : 140;
         this.RADIUS = this.DIAMETER / 2;
-        this.LERP_SPEED = 0.06;
+        this.LERP_SPEED = 0.1;
         this.commitRef = commit;
         this.x = x;
         this.y = y;
@@ -17,12 +17,25 @@ class DrawCommit {
         this.color = '#a0eba0';
     }
     onHover() {
-        let distance = dist(mouseX - canvasControl.panX, mouseY - canvasControl.panY, this.x, this.y);
-        if(distance < this.RADIUS*canvasControl.zoom) {
+        let distance = dist(mouseX, mouseY, this.getX(), this.getY());
+        if(distance < this.RADIUS) {
             this.isHovered = true;
         } else {
             this.isHovered = false;
         }
+    }
+
+    getX() {
+        return this.x + canvasControl.panX;
+    }
+    getY() {
+        return this.y + canvasControl.panY;
+    }
+    getDestX() {
+        return this.destinationX + canvasControl.panDestX;
+    }
+    getDestY() {
+        return this.destinationY + canvasControl.panDestY;
     }
 
     setDestination(x = this.x, y = this.y) {
@@ -42,8 +55,14 @@ class DrawCommit {
     }
 
     draw() {
+        let xCircPos = this.getX();
+        let yCircPos = this.getY();
+        let xTextPos = xCircPos;
+        let yTextPos = yCircPos + 4;
+        let sizeOfText = 25;
+
         this.move();
-        
+
         // commit message pop up
         this.onHover();
         
@@ -55,7 +74,7 @@ class DrawCommit {
         } else {
             strokeWeight(2);
         }
-        circle(this.x, this.y, this.DIAMETER * canvasControl.zoom);
+        circle(xCircPos, yCircPos, this.DIAMETER);
         pop();
         
         // commit id
@@ -63,12 +82,14 @@ class DrawCommit {
         if(this.commitRef.prev !== null) {
             fill('#000')
             textAlign(CENTER);
-            let sizeOfText = 25 * canvasControl.zoom;
-            if (sizeOfText > 10) {
-                textSize(sizeOfText);
-                text(this.commitRef.id, this.x, this.y+4);
-            }
+            textSize(sizeOfText);
+            text(this.commitRef.id, xTextPos, yTextPos);
         }
         pop();
+        
+        // push();
+        // textSize(17);
+        // text(`X: ${this.getX()}\nY: ${this.getY()}`, xCircPos+this.RADIUS+ 10, yCircPos-4);
+        // pop();
     }
 }

@@ -18,10 +18,10 @@ class Link {
     }
     
     getCommitOneCoordinates() {
-        return [this.dCommitRef1.x, this.dCommitRef1.y];
+        return [this.dCommitRef1.getX(), this.dCommitRef1.getY()];
     }
     getCommitTwoCoordinates() {
-        return [this.dCommitRef2.x, this.dCommitRef2.y];
+        return [this.dCommitRef2.getX(), this.dCommitRef2.getY()];
     }
     
     isMergeLink() {

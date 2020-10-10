@@ -96,7 +96,7 @@
     100% {text-shadow: none; font-size: 2.1em;}
 }
 
-button[class$="panel-btn"]:focus {
+button:focus {
     outline: none;
 }
 
@@ -108,6 +108,21 @@ button[class$="panel-btn"] {
     background-color: transparent;
     border: transparent;
     font-size: 2em;
+}
+
+.focus-btn {
+    margin-top: 20px;
+    width: 100px;
+    height: 40px;
+    border-radius: 10px;
+    border: 0;
+    color: rgb(241, 241, 241);
+    background-color: rgb(87, 33, 33);
+}
+
+.focus-btn:active {
+    background-color: rgb(155, 36, 36);
+
 }
 
 body {

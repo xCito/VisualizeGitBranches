@@ -21,3 +21,14 @@ function zoomSliderChange(event) {
 function updateSliderOnUI( value ) {
     document.getElementById('zoom-slider').value = value * 10;
 }
+
+function setMinAndMaxSlider() {
+    let slider = document.getElementById('zoom-slider');
+    slider.max = ZOOM_MAX * 10;
+    slider.min = ZOOM_MIN * 10;
+}
+setMinAndMaxSlider();
+
+function focusOnCommit() {
+    tree.isFocusDetached = false;
+}

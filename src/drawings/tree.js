@@ -18,12 +18,7 @@ class DrawTree {
         this.lastRowTaken;
         this.head = mainBranch;
         
-        this.focusDetached = false;
-        this.panDestinationX = canvasControl.panX;
-        this.panDestinationY = canvasControl.panY;
-        this.BORDER_LIMIT_X = windowWidth * 0.35;
-        this.BORDER_LIMIT_Y = windowHeight * 0.25;
-        this.PAN_LERP_SPEED = 0.05;
+        this.isFocusDetached = false;
         
         this.setup();
     }
@@ -51,8 +46,6 @@ class DrawTree {
             }
         } else if (branchState.type === 'HEAD') {
             this.head = branchState.branch;
-            this.focusDetached = false;
-            this.setPanDestination(this.head.curCommit);
         } else if (branchState.type === 'UPDATE') {
             this.updateTree();
         } else {
@@ -88,9 +81,7 @@ class DrawTree {
 
         // get draw commit of prev commit ref.
         this.linkTwoCommits(prevDCommit, newDrawCommit);
-
-        this.focusDetached = false;
-        this.setPanDestination(commitRef);
+        this.isFocusDetached = false;
     }
 
     getNextColor() {
@@ -116,10 +107,10 @@ class DrawTree {
         let x, y;
         if (this.isBranchOffCommit(commitRef)) {
             let rowNum = this.getNextAvailableRow(commitRef);
-            x = prevX + this.COMMIT_WIDTH_DIST * canvasControl.zoom;
-            y = this.y + (rowNum * this.COMMIT_HEIGHT_DIST * canvasControl.zoom);
+            x = prevX + this.COMMIT_WIDTH_DIST;
+            y = this.y + (rowNum * this.COMMIT_HEIGHT_DIST);
         } else {
-            x = prevX + this.COMMIT_WIDTH_DIST * canvasControl.zoom;
+            x = prevX + this.COMMIT_WIDTH_DIST;
             y = prevY + 0;
         }
 
@@ -149,7 +140,7 @@ class DrawTree {
     }
 
     calcRowFromY(yValue) {
-        return (yValue - this.y) / this.COMMIT_HEIGHT_DIST  * canvasControl.zoom;
+        return (yValue - this.y) / this.COMMIT_HEIGHT_DIST;
     }
     freeRowY( row ) {
         if(row < 0) {
@@ -214,49 +205,36 @@ class DrawTree {
                 this.linkTwoCommits(dCommit, map.get(commitRef.mergedTo));
             }
         }); 
-        this.setPanDestination(this.head.curCommit);
         
     }
 
-    setPanDestination(commit) {
-        let leftLimit = this.BORDER_LIMIT_X; 
-        let rightLimit = windowWidth - this.BORDER_LIMIT_X; 
-        let upperLimit = this.BORDER_LIMIT_Y;
-        let bottomLimit = windowHeight-this.BORDER_LIMIT_Y;
-        let commitX, commitY;
+    panToCommit( drawCommit ) {
+        let rect = canvasControl.getRect();
+        let leftLimit = rect.x + ((windowWidth * 0.3) / canvasControl.zoom);
+        let rightLimit = rect.x + rect.w - leftLimit;
+        let upperLimit = rect.y + ((windowHeight * 0.3) / canvasControl.zoom);
+        let bottomLimit = rect.y + rect.h - upperLimit;
 
-        if (!commit) {
-            return;
-        }
-        let dCommit = this.refToDrawCommitMap.get(commit);
-        commitX = dCommit.destinationX + canvasControl.panX;
-        commitY = dCommit.destinationY + canvasControl.panY;
+        let withinLeftLimit = drawCommit.getDestX() > leftLimit 
+        let withinRightLimit = drawCommit.getDestX() < rightLimit 
+        let withinBottomLimit = drawCommit.getDestY() < bottomLimit 
+        let withinUpperLimit = drawCommit.getDestY() > upperLimit;
         
-        if(commitX > rightLimit) {
-            this.panDestinationX += rightLimit - commitX;
-        } else if (commitX < leftLimit) {
-            this.panDestinationX += leftLimit - commitX;
+        if ( !withinLeftLimit ) {
+            let moveX = leftLimit - drawCommit.getDestX();
+            canvasControl.updatePanCoordinates(moveX, 0);
         }
-        
-        if(commitY < upperLimit) {
-            this.panDestinationY += (windowHeight/2) - commitY;
-        } else if (commitY > bottomLimit) {
-            this.panDestinationY += (windowHeight/2) - commitY;
+        if ( !withinRightLimit ) {
+            let moveX = rightLimit - drawCommit.getDestX();
+            canvasControl.updatePanCoordinates(moveX,0);
         }
-    }
-
-    updatePanViewToCommit() {
-        if (this.focusDetached) {
-            return;
+        if ( !withinUpperLimit ) {
+            let moveY = upperLimit - drawCommit.getDestY();
+            canvasControl.updatePanCoordinates(0,moveY);
         }
-
-        if(canvasControl.panX !== this.panDestinationX) {
-            canvasControl.panX = lerp(canvasControl.panX, this.panDestinationX, this.PAN_LERP_SPEED);
-            canvasControl.panX = abs(canvasControl.panX - this.panDestinationX) < 0.5 ? this.panDestinationX : canvasControl.panX;
-        }
-        if(canvasControl.panY !== this.panDestinationY) {
-            canvasControl.panY = lerp(canvasControl.panY, this.panDestinationY, this.PAN_LERP_SPEED);
-            canvasControl.panY = abs(canvasControl.panY - this.panDestinationY) < 0.5 ? this.panDestinationY : canvasControl.panY;
+        if ( !withinBottomLimit ) {
+            let moveY = bottomLimit - drawCommit.getDestY();
+            canvasControl.updatePanCoordinates(0,moveY);
         }
     }
 
@@ -265,27 +243,39 @@ class DrawTree {
             link.draw();
         }); 
 
+        // Draw arrows to indicate where branches reference
         this.refToDrawCommitMap.forEach( (drawCommit, commitRef) => {
             drawCommit.draw();
-            let offset = 0;
-            let branchNames = this.branches.filter( b => b.curCommit.id === commitRef.id ).map( b => b.name );
+            let xPos = drawCommit.getX();
+            let yPos = drawCommit.getY() - drawCommit.RADIUS;
+
+            let branchNames = this.branches
+                .filter( b => b.curCommit.id === commitRef.id )
+                .map( b => b.name );
+            
             if (branchNames.length !== 0) {
-                this.drawArrow(drawCommit.x + offset, drawCommit.y + offset - drawCommit.RADIUS*canvasControl.zoom, commitRef.id === this.head.curCommit.id, branchNames); 
+                this.drawArrow(xPos, yPos, commitRef.id === this.head.curCommit.id, branchNames); 
             }
-            offset += 2;
         });
         
+        // Draw the commit message box if hovered
         this.refToDrawCommitMap.forEach( drawCommit => {
+            let xPos = drawCommit.getX() - drawCommit.MSG_BOX_WIDTH;
+            let yPos = drawCommit.getY() - drawCommit.MSG_BOX_HEIGHT - drawCommit.RADIUS;
+            let padding = 5;
+
             if (drawCommit.isHovered) {
                 push();
-                rect(drawCommit.x-drawCommit.MSG_BOX_WIDTH, drawCommit.y - (drawCommit.RADIUS*canvasControl.zoom) - drawCommit.MSG_BOX_HEIGHT, drawCommit.MSG_BOX_WIDTH, drawCommit.MSG_BOX_HEIGHT);
+                rect(xPos, yPos, drawCommit.MSG_BOX_WIDTH, drawCommit.MSG_BOX_HEIGHT);
                 textSize(15);
-                text(drawCommit.commitRef.message, drawCommit.x - drawCommit.MSG_BOX_WIDTH + 5, drawCommit.y - (drawCommit.RADIUS*canvasControl.zoom)-drawCommit.MSG_BOX_HEIGHT+5, drawCommit.MSG_BOX_WIDTH-5, drawCommit.MSG_BOX_HEIGHT-5);
+                text(drawCommit.commitRef.message, xPos + padding, yPos + padding, drawCommit.MSG_BOX_WIDTH - padding, drawCommit.MSG_BOX_HEIGHT - padding);
                 pop();
             }
         });
-        
-        this.updatePanViewToCommit();
+
+        if(!this.isFocusDetached) {
+            this.panToCommit(this.refToDrawCommitMap.get(this.head.curCommit));
+        }
     }
     
     drawArrow(x, y, isHead, names) {
