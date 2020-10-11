@@ -210,9 +210,9 @@ class DrawTree {
 
     panToCommit( drawCommit ) {
         let rect = canvasControl.getRect();
-        let leftLimit = rect.x + ((windowWidth * 0.3) / canvasControl.zoom);
+        let leftLimit = rect.x + ((windowWidth * 0.5) / canvasControl.zoom);
         let rightLimit = rect.x + rect.w - leftLimit;
-        let upperLimit = rect.y + ((windowHeight * 0.3) / canvasControl.zoom);
+        let upperLimit = rect.y + ((windowHeight * 0.5) / canvasControl.zoom);
         let bottomLimit = rect.y + rect.h - upperLimit;
 
         let withinLeftLimit = drawCommit.getDestX() > leftLimit 
