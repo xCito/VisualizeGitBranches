@@ -46,7 +46,7 @@ function touchMoved(event) {
     } 
 }
 function mouseDragged(event) {
-    if (event.target.id === 'theCanvas' && !terminal.isHeld) {
+    if (event.target.id === 'theCanvas' && !terminal.isHeld && !terminal.isResizing) {
         tree.isFocusDetached = true;
         canvasControl.updatePanCoordinates(event.movementX, event.movementY);
 

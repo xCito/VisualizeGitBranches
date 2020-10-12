@@ -6,6 +6,7 @@ class Terminal {
     #inputContainerElem = document.getElementById("commandLineContainer");
     #commandLineElem = document.getElementById("commandLineInput");
     #terminalHeader = document.getElementById("terminal-head");
+    #terminalResizers = document.getElementsByClassName("terminal-resizer");
 
     constructor() {
         this.gitProcessor = new GitCommandProcessor();
@@ -14,6 +15,8 @@ class Terminal {
         this.historyIndex = 0;
 
         this.isHeld = false;
+        this.isResizing = false;
+        this.resizeNSWE;
         this.shiftX = 0;
         this.shiftY = 0;
 
@@ -27,8 +30,16 @@ class Terminal {
         this.#terminalElem.addEventListener('click', () => this._focusOnInputElem());
 
         // Dragging terminal listeners 
-        document.addEventListener('mousemove', e => e.buttons === 1 && this.isHeld ? this._handleMouseDrag(e): false);
+        document.addEventListener('mousemove', e => {
+            e.buttons === 1 && this.isHeld ? this._handleMouseDrag(e): false;
+            e.buttons === 1 && this.isResizing ? this._handleResizing(e): false;
+        });
+        document.addEventListener('mouseup', () => {
+            this.isHeld = false;
+            this.isResizing = false;
+        });
         this.#terminalHeader.addEventListener('mousedown', e => { 
+            console.log('click');
             this.isHeld = true
             this.shiftX = e.pageX - this.#terminalHeader.getBoundingClientRect().left+ 10; 
             this.shiftY = e.pageY - this.#terminalHeader.getBoundingClientRect().top + 10; 
@@ -38,6 +49,17 @@ class Terminal {
         this.#terminalElem.style.left = '0px';
         this.#terminalElem.style.top = '0px';
         this.center();
+        
+        // Resizer terminal listeners
+        [...this.#terminalResizers].forEach( (elem) => {
+            elem.addEventListener('mousedown', e => {
+                this.isResizing = true;
+                this.resizeNSWE = elem.dataset.compass;
+                this.shiftX = e.pageX - this.#terminalHeader.getBoundingClientRect().left+ 10; 
+                this.shiftY = e.pageY - this.#terminalHeader.getBoundingClientRect().top + 10; 
+            });
+            elem.addEventListener('mouseup', () => this.isResizing = false);
+        });
     }
     
     center() {
@@ -78,6 +100,41 @@ class Terminal {
         e.preventDefault();
         this.#terminalElem.style.left = e.clientX - this.shiftX + 'px';
         this.#terminalElem.style.top = e.clientY - this.shiftY + 'px';
+    }
+    
+    _handleResizing(e) {
+        e.preventDefault();
+
+        let height = this.#terminalElem.style.height;
+        let width = this.#terminalElem.style.width;
+        let isVertical = this.resizeNSWE.includes('N') || this.resizeNSWE.includes('S');
+        let isHorizontal = this.resizeNSWE.includes('W') || this.resizeNSWE.includes('E');
+        if (!height || !width) {
+            let style = window.getComputedStyle(this.#terminalElem);
+            height = style.height;
+            width = style.width;
+        }
+    
+
+        if (isVertical) {
+            let hVal = parseInt(height.slice(0,-2));
+            if (this.resizeNSWE.includes('N')) {
+                this.#terminalElem.style.top = (e.clientY - this.shiftY) + 'px';
+                this.#terminalElem.style.height = (hVal - e.movementY) + 'px';
+            } else {
+                this.#terminalElem.style.height = (hVal + e.movementY) + 'px';
+            }
+        } 
+        if (isHorizontal) {
+            let wVal = parseInt(width.slice(0,-2));
+            if (this.resizeNSWE.includes('W')) {
+                this.#terminalElem.style.width = (wVal - e.movementX) + 'px';
+                this.#terminalElem.style.left = e.clientX - this.shiftX + 'px';
+            } else {
+                this.#terminalElem.style.width = (wVal + e.movementX) + 'px';
+            }
+        }
+
     }
     
     addToCommandHistory(cmd) {
