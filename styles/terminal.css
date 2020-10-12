@@ -59,6 +59,7 @@
     font-size: 1.1em;
     outline: none;
     border: none;
+    width: 100%;
 }
 
 .terminal span.warn {

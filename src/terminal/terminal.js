@@ -17,6 +17,9 @@ class Terminal {
         this.isHeld = false;
         this.isResizing = false;
         this.resizeNSWE;
+        this.MIN_WIDTH = 260;
+        this.MIN_HEIGHT = 100;
+
         this.shiftX = 0;
         this.shiftY = 0;
 
@@ -78,7 +81,6 @@ class Terminal {
             this.cmdToListOfCommands(cmd).forEach( async (command, i) => {
                 await setTimeout(() => {
                     if(command == "") {
-                        this._addToFeed("");
                         return;
                     }
                     output = this.processCommand(command);
@@ -118,21 +120,28 @@ class Terminal {
 
         if (isVertical) {
             let hVal = parseInt(height.slice(0,-2));
+            let newHeight;
             if (this.resizeNSWE.includes('N')) {
+                newHeight = (hVal - e.movementY);
                 this.#terminalElem.style.top = (e.clientY - this.shiftY) + 'px';
-                this.#terminalElem.style.height = (hVal - e.movementY) + 'px';
             } else {
-                this.#terminalElem.style.height = (hVal + e.movementY) + 'px';
+                newHeight = (hVal + e.movementY);
             }
+
+            this.#terminalElem.style.height = ((newHeight < this.MIN_HEIGHT) ? this.MIN_HEIGHT : newHeight) + 'px';
         } 
+
         if (isHorizontal) {
             let wVal = parseInt(width.slice(0,-2));
+            let newWidth;
             if (this.resizeNSWE.includes('W')) {
-                this.#terminalElem.style.width = (wVal - e.movementX) + 'px';
+                newWidth = (wVal - e.movementX);
                 this.#terminalElem.style.left = e.clientX - this.shiftX + 'px';
             } else {
-                this.#terminalElem.style.width = (wVal + e.movementX) + 'px';
+                newWidth = (wVal + e.movementX);
             }
+
+            this.#terminalElem.style.width = ((newWidth < this.MIN_WIDTH) ? this.MIN_WIDTH: newWidth) + 'px';
         }
 
     }
