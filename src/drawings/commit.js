@@ -17,7 +17,7 @@ class DrawCommit {
         this.color = '#a0eba0';
     }
     onHover() {
-        let distance = dist(mouseX, mouseY, this.getX(), this.getY());
+        let distance = dist(mouseX/canvasControl.zoom, mouseY/canvasControl.zoom, this.getX(), this.getY());
         if(distance < this.RADIUS) {
             this.isHovered = true;
         } else {
