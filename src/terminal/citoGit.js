@@ -48,6 +48,9 @@ class GitCommandProcessor {
                 case 'reset':
                     response = `${this.resetCommand(cmd.flags, cmd.args)}`;
                     break;
+                case 'help':
+                    response = `${this.helpCommand(cmd.flags, cmd.args)}`;
+                    break;
                 default:
                     response = `Unknown git command '${cmd.command}'`;
                     break;
@@ -624,6 +627,25 @@ class GitCommandProcessor {
     // ---------------------------------- RESET ---------------------------------- //
     resetCommand(flags, args) {
 
+    }
+
+    // ---------------------------------- HELP ---------------------------------- //
+    helpCommand(flags, args) {
+        let cmds = [
+            {name: 'log', desc: 'display the commit graph **dev console only'},
+            {name: 'branch', desc: 'list | create | move | copy branches'},
+            {name: 'switch', desc: 'switch branches'},
+            {name: 'commit', desc: 'commit changes to branch'},
+            {name: 'checkout', desc: 'pointing to a commit ref'},
+            {name: 'merge', desc: 'merging git changes'},
+            {name: 'rebase', desc: 'another form of merging'},
+            {name: 'reset', desc: 'idk'},
+            {name: 'help', desc: 'displays this menu'}
+        ];
+        
+        return "\nGit Commands\n" + cmds.map( v => {
+            return `  ${v.name.padEnd(20, ' ')}${v.desc}\n`;
+        }).join('') + '\n';
     }
 
     // ---------------------------------- UTILTIY / HELPER ---------------------------------- //

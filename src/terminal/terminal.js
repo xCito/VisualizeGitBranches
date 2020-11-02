@@ -196,19 +196,16 @@ class Terminal {
     }
 
     displayHelpOptions() {
-        let output = "\n Terminal Commands\n" +
-                     "    help\t\t\t*shows this menu*\n" +
-                     "    clear\t\t\t*clears the terminal*\n" + 
-                     "\n xCitoGit Commands\n" +
-                     "    git log\t\t\t*logs full commit tree to dev console*\n" +
-                     "    git branch\t\t\t*displays all branches*\n" +
-                     "    git branch <branchName>\t*creates a new branch*\n" +
-                     "    git checkout <branchName>\t*switches to <branchName>*\n" +
-                     "    git commit\t\t\t*logs commit to current branch*\n" +
-                     "    git commit -m \"message\"\t*logs commit to current branch with message*\n" +
-                     "    git rebase <branchName>\t*noactionyet*\n" +
-                     "    git merge <branchName>\t*noactionyet*\n\n";
-                     
+        let cmds = [
+            {name: 'help', desc: 'shows this menu :)'},
+            {name: 'clear', desc: 'clears the terminal'},
+            {name: 'git help', desc: 'displays list of commands relating to git'}
+        ];
+        
+        let output = "\n\nTerminal Commands\n" + cmds.map( v => {
+            return `  ${v.name.padEnd(20, ' ')}${v.desc}\n`;
+        }).join('') + '\n';
+                                    
         this._addToFeed(output);
     }
 
