@@ -40,18 +40,25 @@ class Terminal {
         document.addEventListener('mouseup', () => {
             this.isHeld = false;
             this.isResizing = false;
+            this._saveSizeAndLocation();
         });
         this.terminalHeader.addEventListener('mousedown', e => { 
-            console.log('click');
             this.isHeld = true
             this.shiftX = e.pageX - this.terminalHeader.getBoundingClientRect().left+ 10; 
             this.shiftY = e.pageY - this.terminalHeader.getBoundingClientRect().top + 10; 
         });
         
         this.terminalHeader.addEventListener('mouseup', () => this.isHeld = false);
-        this.terminalElem.style.left = '0px';
-        this.terminalElem.style.top = '0px';
-        this.center();
+
+        // Set terminal location and size
+        console.log(localStorage.getItem('t-top'));
+        if (localStorage.getItem('t-top') == '') {
+            this.terminalElem.style.left = '0px';
+            this.terminalElem.style.top = '0px';
+            this.center();
+        }else {
+            this._setSizeAndLocation();
+        }
         
         // Resizer terminal listeners
         [...this.terminalResizers].forEach( (elem) => {
@@ -66,11 +73,19 @@ class Terminal {
     }
     
     center() {
-        let terminalWidth = this.terminalElem.getBoundingClientRect().width;
+        this.verticalBottom();
+        this.horizontalCenter();
+    }
+    verticalBottom() {
         let terminalHeight = this.terminalElem.getBoundingClientRect().height;
-        this.terminalElem.style.left = (window.innerWidth/2) - (terminalWidth/2) + 'px';
         this.terminalElem.style.top = (window.innerHeight) - (terminalHeight + 70) + 'px';
     }
+    
+    horizontalCenter() {
+        let terminalWidth = this.terminalElem.getBoundingClientRect().width;
+        this.terminalElem.style.left = (window.innerWidth/2) - (terminalWidth/2) + 'px';
+    }
+
 
     _handleKeyPress(e) {
         if ('Enter' === e.key) {    
@@ -102,6 +117,37 @@ class Terminal {
         e.preventDefault();
         this.terminalElem.style.left = e.clientX - this.shiftX + 'px';
         this.terminalElem.style.top = e.clientY - this.shiftY + 'px';
+    }
+
+    _setSizeAndLocation() {
+        const left = localStorage.getItem('t-left');
+        const top = localStorage.getItem('t-top');
+        const height = localStorage.getItem('t-height');
+        const width = localStorage.getItem('t-width');
+
+        // Within width bounds
+        if (parseInt(left.slice(0,-2)) > window.innerWidth) {
+            this.horizontalCenter();
+        } else {
+            this.terminalElem.style.left   = left;
+        }
+
+        // Within height bounds
+        if (parseInt(top.slice(0,-2)) > window.innerHeight) {
+            this.verticalBottom();
+        } else {
+            this.terminalElem.style.top    = top;
+        }
+
+        this.terminalElem.style.height = height;
+        this.terminalElem.style.width  = width;
+    }
+
+    _saveSizeAndLocation() {
+        localStorage.setItem('t-left', this.terminalElem.style.left);
+        localStorage.setItem('t-top', this.terminalElem.style.top);
+        localStorage.setItem('t-height', this.terminalElem.style.height);
+        localStorage.setItem('t-width', this.terminalElem.style.width);
     }
     
     _handleResizing(e) {
