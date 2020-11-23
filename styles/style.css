@@ -23,23 +23,30 @@
     overflow: hidden;
     transition: width 0.2s;
     background-color: rgb(13, 20, 20);
+    font-family: 'Ubuntu Mono', monospace;
+    color: gray;
 }
 
+.side-panel > * {
+    padding-left: 10px;
+}
+
+.side-panel h1,.side-panel h2,.side-panel h3,.side-panel h4,.side-panel h5,.side-panel h6 {
+    color: white;
+}
+
+.heading {
+    margin: 30px 5px 10px 5px;
+}
 
 .command-list-container {
-    /* border: 1px solid red; */
-    padding: 5px;
-    font-family: 'Ubuntu Mono', monospace;
-    font-size: 1.3em;
     color: white;
-    margin-top: 50px;
+    margin-top: 30px;
 }
 
 .command-list {
     padding-bottom: 30px;
     padding-left: 30px;
-    color: gray;
-    font-size: .8em;
 }
 
 .hide-panel-btn {

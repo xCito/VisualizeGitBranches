@@ -56,7 +56,7 @@ class GitCommandProcessor {
                     break;
             }
         } else {
-            response = this.errorMsg(`Error: Uknown command '${cmd.original}' :(`);
+            response = this.errorMsg(`Error: Unknown command '${cmd.original}' :(`);
         }
 
         return this.PREFIX + response + this.POSTFIX;
@@ -89,10 +89,9 @@ class GitCommandProcessor {
 
     
     getFlags(cmd) {
-        const flagsPattern = new RegExp(/--[a-z]+|-[a-z]+/, 'gi');
+        const flagsPattern = new RegExp(/\s--[a-z]+|\s-[a-z]+/, 'gi');
         let flags = cmd.match(flagsPattern);
         let flagArr = [];
-        
         if (flags) {
          flagArr = [...cmd.match(flagsPattern)]
             .reduce((flags, str) => {
@@ -105,12 +104,11 @@ class GitCommandProcessor {
                 return flags;
             }, []);
         }
-        
         return [...new Set(flagArr)];
     }
 
     extractFlags(cmd) {
-        const flagsPattern = new RegExp(/--[a-z]+|-[a-z]+/, 'gi');
+        const flagsPattern = new RegExp(/\s--[a-z]+|\s-[a-z]+/, 'gi');
         let filteredCmd = "";
         if (flagsPattern.test(cmd)) {
             filteredCmd = cmd.replace(flagsPattern, '');

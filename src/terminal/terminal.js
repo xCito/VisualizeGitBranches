@@ -1,12 +1,12 @@
 class Terminal { 
     
     // private - references to DOM elements
-    #terminalElem = document.getElementById("terminal");
-    #terminalFeedElem = document.getElementById("feed");
-    #inputContainerElem = document.getElementById("commandLineContainer");
-    #commandLineElem = document.getElementById("commandLineInput");
-    #terminalHeader = document.getElementById("terminal-head");
-    #terminalResizers = document.getElementsByClassName("terminal-resizer");
+    terminalElem = document.getElementById("terminal");
+    terminalFeedElem = document.getElementById("feed");
+    inputContainerElem = document.getElementById("commandLineContainer");
+    commandLineElem = document.getElementById("commandLineInput");
+    terminalHeader = document.getElementById("terminal-head");
+    terminalResizers = document.getElementsByClassName("terminal-resizer");
 
     constructor() {
         this.gitProcessor = new GitCommandProcessor();
@@ -29,8 +29,8 @@ class Terminal {
 
     setUpEventListeners() {
         // Input listeners to handle terminal-like features 
-        this.#commandLineElem.addEventListener('keydown', (e) => this._handleKeyPress(e));
-        this.#terminalElem.addEventListener('click', () => this._focusOnInputElem());
+        this.commandLineElem.addEventListener('keydown', (e) => this._handleKeyPress(e));
+        this.terminalElem.addEventListener('click', () => this._focusOnInputElem());
 
         // Dragging terminal listeners 
         document.addEventListener('mousemove', e => {
@@ -41,40 +41,40 @@ class Terminal {
             this.isHeld = false;
             this.isResizing = false;
         });
-        this.#terminalHeader.addEventListener('mousedown', e => { 
+        this.terminalHeader.addEventListener('mousedown', e => { 
             console.log('click');
             this.isHeld = true
-            this.shiftX = e.pageX - this.#terminalHeader.getBoundingClientRect().left+ 10; 
-            this.shiftY = e.pageY - this.#terminalHeader.getBoundingClientRect().top + 10; 
+            this.shiftX = e.pageX - this.terminalHeader.getBoundingClientRect().left+ 10; 
+            this.shiftY = e.pageY - this.terminalHeader.getBoundingClientRect().top + 10; 
         });
         
-        this.#terminalHeader.addEventListener('mouseup', () => this.isHeld = false);
-        this.#terminalElem.style.left = '0px';
-        this.#terminalElem.style.top = '0px';
+        this.terminalHeader.addEventListener('mouseup', () => this.isHeld = false);
+        this.terminalElem.style.left = '0px';
+        this.terminalElem.style.top = '0px';
         this.center();
         
         // Resizer terminal listeners
-        [...this.#terminalResizers].forEach( (elem) => {
+        [...this.terminalResizers].forEach( (elem) => {
             elem.addEventListener('mousedown', e => {
                 this.isResizing = true;
                 this.resizeNSWE = elem.dataset.compass;
-                this.shiftX = e.pageX - this.#terminalHeader.getBoundingClientRect().left+ 10; 
-                this.shiftY = e.pageY - this.#terminalHeader.getBoundingClientRect().top + 10; 
+                this.shiftX = e.pageX - this.terminalHeader.getBoundingClientRect().left+ 10; 
+                this.shiftY = e.pageY - this.terminalHeader.getBoundingClientRect().top + 10; 
             });
             elem.addEventListener('mouseup', () => this.isResizing = false);
         });
     }
     
     center() {
-        let terminalWidth = this.#terminalElem.getBoundingClientRect().width;
-        let terminalHeight = this.#terminalElem.getBoundingClientRect().height;
-        this.#terminalElem.style.left = (window.innerWidth/2) - (terminalWidth/2) + 'px';
-        this.#terminalElem.style.top = (window.innerHeight) - (terminalHeight + 70) + 'px';
+        let terminalWidth = this.terminalElem.getBoundingClientRect().width;
+        let terminalHeight = this.terminalElem.getBoundingClientRect().height;
+        this.terminalElem.style.left = (window.innerWidth/2) - (terminalWidth/2) + 'px';
+        this.terminalElem.style.top = (window.innerHeight) - (terminalHeight + 70) + 'px';
     }
 
     _handleKeyPress(e) {
         if ('Enter' === e.key) {    
-            let cmd = this.#commandLineElem.value;
+            let cmd = this.commandLineElem.value;
             let output;
             
             this._addToFeed(cmd);
@@ -100,19 +100,19 @@ class Terminal {
     
     _handleMouseDrag(e) {
         e.preventDefault();
-        this.#terminalElem.style.left = e.clientX - this.shiftX + 'px';
-        this.#terminalElem.style.top = e.clientY - this.shiftY + 'px';
+        this.terminalElem.style.left = e.clientX - this.shiftX + 'px';
+        this.terminalElem.style.top = e.clientY - this.shiftY + 'px';
     }
     
     _handleResizing(e) {
         e.preventDefault();
 
-        let height = this.#terminalElem.style.height;
-        let width = this.#terminalElem.style.width;
+        let height = this.terminalElem.style.height;
+        let width = this.terminalElem.style.width;
         let isVertical = this.resizeNSWE.includes('N') || this.resizeNSWE.includes('S');
         let isHorizontal = this.resizeNSWE.includes('W') || this.resizeNSWE.includes('E');
         if (!height || !width) {
-            let style = window.getComputedStyle(this.#terminalElem);
+            let style = window.getComputedStyle(this.terminalElem);
             height = style.height;
             width = style.width;
         }
@@ -123,12 +123,12 @@ class Terminal {
             let newHeight;
             if (this.resizeNSWE.includes('N')) {
                 newHeight = (hVal - e.movementY);
-                this.#terminalElem.style.top = (e.clientY - this.shiftY) + 'px';
+                this.terminalElem.style.top = (e.clientY - this.shiftY) + 'px';
             } else {
                 newHeight = (hVal + e.movementY);
             }
 
-            this.#terminalElem.style.height = ((newHeight < this.MIN_HEIGHT) ? this.MIN_HEIGHT : newHeight) + 'px';
+            this.terminalElem.style.height = ((newHeight < this.MIN_HEIGHT) ? this.MIN_HEIGHT : newHeight) + 'px';
         } 
 
         if (isHorizontal) {
@@ -136,12 +136,12 @@ class Terminal {
             let newWidth;
             if (this.resizeNSWE.includes('W')) {
                 newWidth = (wVal - e.movementX);
-                this.#terminalElem.style.left = e.clientX - this.shiftX + 'px';
+                this.terminalElem.style.left = e.clientX - this.shiftX + 'px';
             } else {
                 newWidth = (wVal + e.movementX);
             }
 
-            this.#terminalElem.style.width = ((newWidth < this.MIN_WIDTH) ? this.MIN_WIDTH: newWidth) + 'px';
+            this.terminalElem.style.width = ((newWidth < this.MIN_WIDTH) ? this.MIN_WIDTH: newWidth) + 'px';
         }
 
     }
@@ -165,7 +165,7 @@ class Terminal {
         if( this.historyIndex >= this.commandHistory.length ) {
             this.historyIndex = this.commandHistory.length-1;
         }
-        this.#commandLineElem.value = this.commandHistory[ this.historyIndex ];
+        this.commandLineElem.value = this.commandHistory[ this.historyIndex ];
     }
     
     processCommand(cmd) {
@@ -189,10 +189,10 @@ class Terminal {
     }
 
     clearTerminal() {
-        this.#terminalFeedElem.innerHTML = '';
-        this.#terminalFeedElem.appendChild(this.#inputContainerElem);
-        this.#commandLineElem.value = '';
-        this.#commandLineElem.focus();
+        this.terminalFeedElem.innerHTML = '';
+        this.terminalFeedElem.appendChild(this.inputContainerElem);
+        this.commandLineElem.value = '';
+        this.commandLineElem.focus();
     }
 
     displayHelpOptions() {
@@ -210,18 +210,18 @@ class Terminal {
     }
 
     _focusOnInputElem() {
-        this.#commandLineElem.focus();   
+        this.commandLineElem.focus();   
     }
 
     _addToFeed( text, addPrefix = true ) {
         let span = document.createElement('span');
         span.classList.add('terminal-feed-entry');
         span.innerHTML = addPrefix ? this.prefix + text : text;
-        this.#commandLineElem.value = '';
+        this.commandLineElem.value = '';
 
-        this.#terminalFeedElem.appendChild(span);
-        this.#terminalFeedElem.appendChild(this.#inputContainerElem);
-        this.#commandLineElem.focus();
+        this.terminalFeedElem.appendChild(span);
+        this.terminalFeedElem.appendChild(this.inputContainerElem);
+        this.commandLineElem.focus();
     }
 }
 
