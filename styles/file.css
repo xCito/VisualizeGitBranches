@@ -1,0 +1,89 @@
+
+.file-container {
+    position: absolute;
+    bottom: 50px;
+    right: 0px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 300px;
+    height: 100px;
+}
+
+.file {
+    display: block;
+    margin: 5px;
+    padding: 0px;
+}
+
+.file-outline {
+    fill: rgba(236, 236, 236, 0.445);
+    stroke-width: 2px;
+    stroke: black;
+    stroke-dasharray: 5 8;
+    stroke-dashoffset: 0;
+    animation: linesMove 1s infinite linear;
+    animation-play-state: paused;
+    transition: stroke-dasharray 1s ease-in, fill 0.1s ease-in-out;
+}
+.file:hover > .file-outline {
+    fill: rgba(224, 224, 224, 0.335);
+    animation-play-state: running;
+}
+.file:active > .file-outline {
+    fill: rgba(192, 27, 27, 0.787);
+}
+
+@keyframes linesMove {
+    from { stroke-dashoffset: 0;}
+    to { stroke-dashoffset: 13;}
+}
+
+label[for^="file"] {
+    position: relative;
+}
+input[type="checkbox"] {
+    display: none;
+}
+
+span.checkmark {
+    display: none;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}
+input[type="checkbox"]:checked + label > span.checkmark {
+    display: inline;
+    color: red;
+}
+
+input[type="checkbox"]:checked + label > svg.file > polygon.file-outline {
+    fill: rgba(85, 0, 0, 0.753);
+    stroke-dasharray: 10 0;
+    animation: fillOutline 0.8s ease-in 1, linesMove 1s infinite linear;
+}
+@keyframes fillOutline {
+    0%   { stroke-dasharray: 5 8; }
+    80%  { stroke-dasharray: 1 17; }
+    100% { stroke-dasharray: 10 0; }
+}
+input[type="checkbox"]:checked + label > svg.file:hover > polygon.file-outline {
+    fill: rgba(82, 0, 0, 0.787);
+}
+
+input[type="checkbox"]:checked + label > svg.file > polyline.plus {
+    display: none;
+}
+
+input[type="checkbox"]:not(:checked) + label > svg.file > .file-name {
+    display: none;
+}
+.file-name { 
+    font: 16px sans-serif; 
+    fill: white;
+}
+
+.plus {
+    stroke: black;
+    stroke-width: 2;
+}
