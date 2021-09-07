@@ -5,6 +5,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="styles/style.css" />
         <link rel="stylesheet" type="text/css" href="styles/terminal.css" />
+        <link rel="stylesheet" type="text/css" href="styles/file.css" />
         <script src="dependencies/p5.min.js"></script>
     </head>
     <body>
@@ -13,6 +14,7 @@
         </div>
         
 
+        <!--------------------- Terminal --------------------->
         <div id="terminal" class="terminal">
             <div id="terminal-head" class="terminal-header unselectable">Welcome to Learn Git Visually</div>
             <div id="feed" class="terminal-feed">
@@ -32,14 +34,14 @@
             <div class="terminal-resizer" id="terminal-resizer-botRight" data-compass="SE"></div>
         </div>
 
-
+        <!--------------------- Help Side Panel --------------------->
         <button class="open-panel-btn" onclick="openSidePanel()">help</button>
         <div class="side-panel">
             <button class="hide-panel-btn" onclick="closeSidePanel()">x</button>
 
             <h2 class="heading">Welcome to LearnGitVisually</h2>
             <p>Get started by typing some commands into the terminal</p>
-            
+
             <div class="command-list-container">
                 <h3 class="heading">Terminal Commands</h3>
                 <ul class="command-list">
@@ -47,17 +49,53 @@
                     <li>clear</li>
                 </ul>    
             </div>
-
-
         </div>
 
+        <!--------------------- Text File --------------------->
+        <div class="file-container">
+            <input type="checkbox" id="fileA"/>
+            <label for="fileA">
+                <span class="checkmark">X</span>
+                <svg viewBox="-5 -5 70 90" width="65" height="85" class="file">
+                    <polygon class="file-outline" points="0,20 20,0 60,0 60,80 0,80" />
+                    <text x="10" y="45" class="file-name">File A</text>
+                    <polyline points="30,40 38,40 30,40 22,40 30,40 30,48 30,40 30,32 30,40" class="plus"/>
+                    SVG Not supported
+                </svg>
+            </label>
+
+            <input type="checkbox" id="fileB" />
+            <label for="fileB">
+                <span class="checkmark">X</span>
+                <svg viewBox="-5 -5 70 90" width="65" height="85" class="file">
+                    <polygon class="file-outline" points="0,20 20,0 60,0 60,80 0,80" />
+                    <text x="10" y="45" class="file-name">File B</text>
+                    <polyline points="30,40 38,40 30,40 22,40 30,40 30,48 30,40 30,32 30,40" class="plus"/>
+                    SVG Not supported
+                </svg>
+            </label>
+
+            <input type="checkbox" id="fileC" />
+            <label for="fileC">
+                <span class="checkmark">X</span>
+                <svg viewBox="-5 -5 70 90" width="65" height="85" class="file">
+                    <polygon class="file-outline" points="0,20 20,0 60,0 60,80 0,80" />
+                    <text x="10" y="45" class="file-name">File C</text>
+                    <polyline points="30,40 38,40 30,40 22,40 30,40 30,48 30,40 30,32 30,40" class="plus"/>
+                    SVG Not supported
+                </svg>
+            </label>
+        </div>
+
+
+        <!--------------------- UI Controls --------------------->
         <div class="zoom-controls">
             <label>Scale</label> 
             <input id="zoom-slider" type="range" min="3" max="13" step="1" oninput="zoomSliderChange(event)"/>
             <button class="focus-btn" onclick="focusOnCommit()">Jump To Head</button>
         </div>
         
-        
+        <!--------------------- Footer --------------------->
         <footer>
             <div class="legend-container">
                 <img src="./src/resources/headArrow.png" />

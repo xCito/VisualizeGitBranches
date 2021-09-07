@@ -30,7 +30,8 @@ class Terminal {
     setUpEventListeners() {
         // Input listeners to handle terminal-like features 
         this.commandLineElem.addEventListener('keydown', (e) => this._handleKeyPress(e));
-        this.terminalElem.addEventListener('click', () => this._focusOnInputElem());
+        this.terminalElem.addEventListener('mouseup', (e) => window.getSelection().toString() === '' && this._focusOnInputElem(e));
+        this.terminalElem.addEventListener('copy', (e) => setTimeout(() => this._focusOnInputElem(e), 1));
 
         // Dragging terminal listeners 
         document.addEventListener('mousemove', e => {
@@ -73,12 +74,16 @@ class Terminal {
     }
     
     center() {
-        this.verticalBottom();
+        this.bottom();
         this.horizontalCenter();
     }
-    verticalBottom() {
+    bottom() {
         let terminalHeight = this.terminalElem.getBoundingClientRect().height;
         this.terminalElem.style.top = (window.innerHeight) - (terminalHeight + 70) + 'px';
+    }
+
+    top() {
+        this.terminalElem.style.top = 10 + 'px';
     }
     
     horizontalCenter() {
@@ -126,7 +131,7 @@ class Terminal {
         const width = localStorage.getItem('t-width');
 
         // Within width bounds
-        if (parseInt(left.slice(0,-2)) > window.innerWidth) {
+        if (!left || parseInt(left.slice(0,-2)) > window.innerWidth) {
             this.horizontalCenter();
         } else {
             this.terminalElem.style.left   = left;
@@ -134,7 +139,9 @@ class Terminal {
 
         // Within height bounds
         if (parseInt(top.slice(0,-2)) > window.innerHeight) {
-            this.verticalBottom();
+            this.bottom();
+        } else if (!top || parseInt(top.slice(0,-2)) < 0 ) {
+            this.top();
         } else {
             this.terminalElem.style.top    = top;
         }
@@ -166,28 +173,34 @@ class Terminal {
 
         if (isVertical) {
             let hVal = parseInt(height.slice(0,-2));
-            let newHeight;
+            let newHeight, newTop;
             if (this.resizeNSWE.includes('N')) {
                 newHeight = (hVal - e.movementY);
-                this.terminalElem.style.top = (e.clientY - this.shiftY) + 'px';
+                newTop = (e.clientY - this.shiftY) + 'px';
             } else {
                 newHeight = (hVal + e.movementY);
             }
 
             this.terminalElem.style.height = ((newHeight < this.MIN_HEIGHT) ? this.MIN_HEIGHT : newHeight) + 'px';
+            if (newHeight > this.MIN_HEIGHT) {
+                this.terminalElem.style.top = newTop;
+            }
         } 
 
         if (isHorizontal) {
             let wVal = parseInt(width.slice(0,-2));
-            let newWidth;
+            let newWidth, newLeft;
             if (this.resizeNSWE.includes('W')) {
                 newWidth = (wVal - e.movementX);
-                this.terminalElem.style.left = e.clientX - this.shiftX + 'px';
+                newLeft = e.clientX - this.shiftX + 'px';
             } else {
                 newWidth = (wVal + e.movementX);
             }
 
             this.terminalElem.style.width = ((newWidth < this.MIN_WIDTH) ? this.MIN_WIDTH: newWidth) + 'px';
+            if (newWidth > this.MIN_WIDTH) {
+                this.terminalElem.style.left = newLeft;
+            }
         }
 
     }
@@ -255,7 +268,7 @@ class Terminal {
         this._addToFeed(output);
     }
 
-    _focusOnInputElem() {
+    _focusOnInputElem(e) {
         this.commandLineElem.focus();   
     }
 
